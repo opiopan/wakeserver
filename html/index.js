@@ -22,6 +22,13 @@
 		$('.server-list').append($node);
 	    }
 	});
+
+	$(document).on('click', '.server-entry', function(){
+	    var param = {"target" : this.id};
+	    $.post('cgi-bin/wakeserver-wake.cgi', param, function(data) {
+		var foo = data;
+	    });
+	});
 	
 	return false;
     });
