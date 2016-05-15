@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ $# -lt 4 ];then
+   echo "`basename $0` section key omit-value add-value" >&2
+   exit 1
+fi
+
+awk -v ovalue="$3" -v avalue="$4" '
+    BEGIN{isInSect = 0}
+    /'"$1"'/{isInSect = 1}
+    isInSect == 1 && $1 == "'"$2"'"{
+	sub(" " ovalue, "", $0);
+	$0 = $0 " " avalue;
+	isInSect = 0;
+    }
+    /^<\//{isInSect = 0}
+    {print $0}
+'

@@ -1,5 +1,30 @@
+<!DOCTYPE html>
 <html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Wake up servers</title>
+    <meta name="author" content="opiopan <opiopan@gmail.com>">
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+
   <body>
-    <h1>Test for wake server</h1>
+    <header>
+    </header>
+
+    <div class="server-list">
+    </div>
+    
+    <!-- template of each server presentation -->
+    <div id="server-entry-template" style="display: none">
+      <div class="server-entry">
+	<div class="indicator"></div>
+	<div class="description"></div>
+	<img class="icon">
+      </div>
+    </div>
+
+    <!-- script section -->
+    <script src="scripts/jquery-1.12.3.min.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>
