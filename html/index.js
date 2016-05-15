@@ -12,9 +12,12 @@
 		var $description = $node.find('.description')
 		$('<h1/>').appendTo($description).append(json[i].name);
 		$('<p/>').appendTo($description).append(json[i].comment);
-		$('<p/>').appendTo($description).append(json[i].ipaddr);
+		$('<p/>').appendTo($description)
+		    .append('IP addrress: ' + json[i].ipaddr);
+		$('<p/>').appendTo($description)
+		    .append('MAC addrress: ' + json[i].macaddr);
 
-		$node.find('.icon').attr({
+		$node.find('.icon img').attr({
 		    'src': json[i].icon,
 		    'alt': json[i].comment
 		});

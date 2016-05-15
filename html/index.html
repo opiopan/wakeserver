@@ -3,12 +3,17 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Wake up servers</title>
+    <link rel="shortcut icon" href="wakeserver.ico"
+	  type="image/vnd.microsoft.icon">
+    <link rel="icon" href="wakeserver.ico" type="image/vnd.microsoft.icon">
     <meta name="author" content="opiopan <opiopan@gmail.com>">
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
 
   <body>
     <header>
+      <img class="logo" src="images/wakeserver-icon.svg">
+      Wake up server portal
     </header>
 
     <div class="server-list">
@@ -16,10 +21,10 @@
     
     <!-- template of each server presentation -->
     <div id="server-entry-template" style="display: none">
-      <div class="server-entry">
-	<div class="indicator"></div>
+      <div class="server-entry clearfix">
+	<div class="icon"><img></div>
 	<div class="description"></div>
-	<img class="icon">
+	<div class="indicator"></div>
       </div>
     </div>
 
