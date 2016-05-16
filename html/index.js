@@ -17,9 +17,8 @@
 		$('<p/>').appendTo($description)
 		    .append('MAC addrress: ' + json[i].macaddr);
 
-		$node.find('.icon img').attr({
-		    'src': json[i].icon,
-		    'alt': json[i].comment
+		$node.find('.icon span').css({
+		    'background-image': "url('" + json[i].icon + "')"
 		});
 		
 		$('.server-list').append($node);
