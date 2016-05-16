@@ -13,9 +13,9 @@
 		$('<h1/>').appendTo($description).append(json[i].name);
 		$('<p/>').appendTo($description).append(json[i].comment);
 		$('<p/>').appendTo($description)
-		    .append('IP addrress: ' + json[i].ipaddr);
+		    .append('IP address: ' + json[i].ipaddr);
 		$('<p/>').appendTo($description)
-		    .append('MAC addrress: ' + json[i].macaddr);
+		    .append('MAC address: ' + json[i].macaddr);
 
 		$node.find('.icon span').css({
 		    'background-image': "url('" + json[i].icon + "')"
