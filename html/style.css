@@ -16,7 +16,7 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  font-size: 15pt;
+  font-size: 18pt;
   padding: 12px;
   padding-left: 60px;
   border-bottom: #c0c0c0 1px solid;
@@ -37,7 +37,7 @@ header .logo {
   width: calc(100% - 80px);
   border: #c0c0c0 1px solid;
   margin: 40px;
-  margin-top: 70px;
+  margin-top: 80px;
   padding: 0;
   background-color: white;
   box-shadow: 0px 0px 10px 5px rgba(0,0,0,0.2);
@@ -66,7 +66,7 @@ header .logo {
 
 .server-entry .icon {
   display: table-cell;
-  width: 180px;
+  width: 220px;
   padding: 0;
   text-align: center;
   vertical-align: middle;
@@ -91,10 +91,11 @@ header .logo {
   display: table-cell;
   vertical-align: middle;
   padding-left: 20px;
+  font-size: 13pt
 }
 
 .description h1 {
-  font-size: 30pt;
+  font-size: 34pt;
   font-weight: 200;
   margin: 0;
   margin-bottom: 0.2em;
@@ -103,4 +104,75 @@ header .logo {
 .description p { 
   margin: 0;
   margin-top: 0.25em;
+}
+
+/* for small screen device */
+@media screen and (max-width: 767px) {
+  header {
+    font-size: 14pt;
+    padding: 12px;
+    padding-left: 60px;
+    border-bottom: #c0c0c0 1px solid;
+  }
+
+  .server-list {
+    width: 100%;
+    margin: 0;
+    margin-top: 49px;
+    border: 0;
+    box-shadow: 0 0 0 0;
+  }
+
+  .server-entry {
+    height: 115px;
+  }
+
+  .server-entry:hover { 
+    background-color: white;
+  }
+
+  .server-entry > div { 
+    border-top: 0;
+    border-bottom: #c0c0c0 1px solid;
+  }
+
+  .server-entry:first-child > div{
+    border-top: #c0c0c0 1px solid;
+  }
+
+  .server-entry .icon {
+    width: 100px;
+  }
+  
+  .server-entry .icon span {
+    width: 64px;
+    height: 64px;
+  }
+
+  .server-entry .indicator { 
+    display: table-cell;
+    width: 80px;
+    vertical-align: middle;
+  }
+  
+  .server-entry .description {
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 5px;
+    font-size: 10pt
+  }
+  
+  .description h1 {
+    font-size: 24pt;
+    font-weight: 200;
+    margin: 0;
+    margin-bottom: 0.1em;
+  }
+  
+  .description p { 
+    font-family: sans-serif;
+    margin: 0;
+    margin-top: 0.1em;
+    color: #707070;
+  }
 }
