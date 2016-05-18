@@ -1,0 +1,68 @@
+#!/usr/bin/python
+
+import os
+import sys
+import time
+import json
+
+CONF =        "/var/www/wakeserver/servers.conf"
+PIDFILE =     "/run/wakeserverd.pid"
+STATUS_DIR =  "/run/wakeserver"
+STATUS_FILE = "/run/wakeserver/status"
+INTERVAL =    1
+
+class Daemon :
+    def __init__(self):
+        with open(CONF) as f:
+            self.servers = json.load(f)
+        for server in self.servers:
+            server["status"] = "off"
+        if not os.path.isdir(STATUS_DIR):
+            os.mkdir(STATUS_DIR)
+        with open(STATUS_FILE, "w") as f:
+            json.dump(self.servers, f)
+
+    def run(self):
+        while True:
+            for server in self.servers:
+                cmd = "ping -c1 -W%d %s" % (INTERVAL, server["ipaddr"])
+                if os.system(cmd) == 0 :
+                    server["status"] = "on"
+                    time.sleep(INTERVAL)
+                else:
+                    server["status"] = "off"
+            with open(STATUS_FILE, "w") as f:
+                json.dump(self.servers, f)
+
+def main():
+    if daemonize(False, False) == 0:
+        daemon = Daemon()
+        daemon.run()
+
+def daemonize(nochdir, noclose):
+    if os.fork() != 0:
+        sys.exit(0)
+    
+    if os.umask(0) < 0:
+        return -1
+    
+    if not nochdir:
+        os.chdir("/")
+
+    if not noclose:
+        sys.stdin.close()
+        sys.stdout.close()
+        sys.stderr.close()
+        sys.stdin = open("/dev/null", "r")
+        sys.stdout = open("/dev/null", "w")
+        sys.stderr = open("/dev/null", "w")
+
+
+    with open(PIDFILE, "w") as f :
+        print >> f, "%d" % os.getpid()
+
+    return 0
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

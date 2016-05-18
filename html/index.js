@@ -31,6 +31,16 @@
 		var foo = data;
 	    });
 	});
+
+	$(document).on('click', 'header', function(){
+	    $('.on-indicator').each(function(){
+		if ($(this).hasClass('off-state')){
+		    $(this).removeClass('off-state');
+		}else{
+		    $(this).addClass('off-state');
+		}
+	    });
+	});
 	
 	return false;
     });

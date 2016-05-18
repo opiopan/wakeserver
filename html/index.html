@@ -49,7 +49,6 @@
     <meta name="msapplication-TileImage" content="/images/mstile-144x144.png">
     <meta name="msapplication-config" content="/images/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
-    
   </head>
 
   <body>
@@ -64,9 +63,14 @@
     <!-- template of each server presentation -->
     <div id="server-entry-template" style="display: none">
       <div class="server-entry clearfix">
-	<div class="icon"><span/></div>
+	<div class="indicator">
+	  <div class="on-indicator off-state"></div>
+	  <div class="off-indicator"></div>
+	</div>
+	<div class="icon">
+	  <span/>
+	</div>
 	<div class="description"></div>
-	<div class="indicator"></div>
       </div>
     </div>
 

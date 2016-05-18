@@ -49,7 +49,7 @@ header .logo {
   height: 180px;
   padding: 0;
   cursor: pointer;
-  transition: .2s linear;
+  transition: .3s linear;
 }
 
 .server-entry:hover { 
@@ -64,9 +64,40 @@ header .logo {
   border-top: 0;
 }
 
+.server-entry .indicator { 
+  display: table-cell;
+  position: relative;
+  width: 70px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.on-indicator, .off-indicator {
+  position: absolute;
+  width:24px;
+  height:24px;
+  top : 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  border-radius: 50%;
+  background-color: rgb(30, 82, 27);
+}
+
+.on-indicator {
+  background-color: rgb(81, 221, 73);
+  z-index: 5;
+  transition: .3s linear;
+}
+
+.off-state { 
+  opacity: 0;
+}
+
 .server-entry .icon {
   display: table-cell;
-  width: 220px;
+  width: 150px;
   padding: 0;
   text-align: center;
   vertical-align: middle;
@@ -81,16 +112,10 @@ header .logo {
   background-size: contain;
 }
 
-.server-entry .indicator { 
-  display: table-cell;
-  width: 180px;
-  vertical-align: middle;
-}
-
 .server-entry .description {
   display: table-cell;
   vertical-align: middle;
-  padding-left: 20px;
+  padding-left: 40px;
   font-size: 13pt
 }
 
@@ -140,8 +165,17 @@ header .logo {
     border-top: #c0c0c0 1px solid;
   }
 
+  .server-entry .indicator { 
+    width: 50px;
+  }
+
+  .on-indicator, .off-indicator {
+    width: 16px;
+    height: 16px;
+  }
+
   .server-entry .icon {
-    width: 100px;
+    width: 64px;
   }
   
   .server-entry .icon span {
@@ -149,16 +183,10 @@ header .logo {
     height: 64px;
   }
 
-  .server-entry .indicator { 
-    display: table-cell;
-    width: 80px;
-    vertical-align: middle;
-  }
-  
   .server-entry .description {
     display: table-cell;
     vertical-align: middle;
-    padding-left: 5px;
+    padding-left: 20px;
     font-size: 10pt
   }
   
