@@ -1,5 +1,6 @@
-(function($) {
+var UPDATE_INTERVAL = 2000;
 
+(function($) {
     $(document).ready(function(){
 	var $template = $('#server-entry-template .server-entry');
 
@@ -20,7 +21,9 @@
 		$node.find('.icon span').css({
 		    'background-image': "url('" + json[i].icon + "')"
 		});
-		
+
+		applyServerState($node, json[i]);
+
 		$('.server-list').append($node);
 	    }
 	});
@@ -32,17 +35,36 @@
 	    });
 	});
 
-	$(document).on('click', 'header', function(){
-	    $('.on-indicator').each(function(){
-		if ($(this).hasClass('off-state')){
-		    $(this).removeClass('off-state');
-		}else{
-		    $(this).addClass('off-state');
-		}
-	    });
-	});
-	
+	setTimeout("updateServerState()", UPDATE_INTERVAL);
+
 	return false;
     });
-
 })(jQuery);
+
+function updateServerState(){
+    (function($) {
+	$.get('cgi-bin/wakeserver-get.cgi', '', function(text){
+	    var servers = JSON.parse(text);
+	    var i = 0;
+	    $('.server-list .server-entry').each(function(){
+		applyServerState($(this), servers[i]);		    
+		i++;
+	    });
+	    
+	    setTimeout("updateServerState()", UPDATE_INTERVAL);
+	});
+    })(jQuery);
+}
+
+function applyServerState($node, server){
+    (function($) {
+	$indicator = $node.find('.on-indicator');
+	var inOffState = $indicator.hasClass('off-state');
+	if (inOffState && server.status == 'on'){
+	    $indicator.removeClass('off-state');
+	}else if (!inOffState && server.status == 'off'){
+	    $indicator.addClass('off-state');
+	}
+    })(jQuery);
+}
+

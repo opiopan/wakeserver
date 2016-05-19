@@ -1,0 +1,9 @@
+[Unit]
+Description=Surveying server power statement
+[Service]
+ExecStart=/var/www/wakeserver/daemon/wakeserverd
+Restart=always
+Type=forking
+PIDFile=/var/run/wakeserverd.pid
+[Install]
+WantedBy=multi-user.target
