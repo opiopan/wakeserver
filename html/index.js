@@ -1,4 +1,6 @@
 var UPDATE_INTERVAL = 2000;
+var TRANSITION_TIMEOUT = 120 * 1000;
+var transitCount = 0;
 
 (function($) {
     $(document).ready(function(){
@@ -29,10 +31,23 @@ var UPDATE_INTERVAL = 2000;
 	});
 
 	$(document).on('click', '.server-entry', function(){
-	    var param = {"target" : this.id};
-	    $.post('cgi-bin/wakeserver-wake.cgi', param, function(data) {
-		var foo = data;
-	    });
+	    $indicator = $(this).find('.on-indicator');
+	    var offState = $indicator.hasClass('off-state');
+	    var transitToOn = $indicator.hasClass('transit-to-on');
+	    if (offState && !transitToOn){
+		var param = {"target" : this.id};
+		$.post('cgi-bin/wakeserver-wake.cgi', param, function(data) {
+		    var foo = data;
+		});
+		var counter = transitCount++;
+		$indicator.attr('transit-counter', counter);
+		$indicator.addClass('transit-to-on');
+		setTimeout(function(){
+		    if ($indicator.attr('transit-counter') == counter){
+			$indicator.removeClass('transit-to-on');
+		    }
+		}, TRANSITION_TIMEOUT);
+	    }
 	});
 
 	setTimeout("updateServerState()", UPDATE_INTERVAL);
@@ -62,6 +77,7 @@ function applyServerState($node, server){
 	var inOffState = $indicator.hasClass('off-state');
 	if (inOffState && server.status == 'on'){
 	    $indicator.removeClass('off-state');
+	    $indicator.removeClass('transit-to-on');
 	}else if (!inOffState && server.status == 'off'){
 	    $indicator.addClass('off-state');
 	}

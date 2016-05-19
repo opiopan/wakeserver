@@ -95,6 +95,24 @@ header .logo {
   opacity: 0;
 }
 
+.transit-to-on {
+  animation-duration: 1.2s;
+  animation-name: blink-off-on;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(1, 0, .38, 1);
+}
+
+@keyframes blink-off-on { 
+  from {
+    opacity: 0;
+  }
+
+  to { 
+    opacity: 1;
+  }
+}
+
 .server-entry .icon {
   display: table-cell;
   width: 150px;
