@@ -4,6 +4,10 @@ var transitCount = 0;
 
 (function($) {
     $(document).ready(function(){
+
+	//---------------------------------------------------
+	// main contents creation & update
+	//---------------------------------------------------
 	var $template = $('#server-entry-template .server-entry');
 
 	$.get('cgi-bin/wakeserver-get.cgi', '', function(text){
@@ -30,6 +34,11 @@ var transitCount = 0;
 	    }
 	});
 
+	setTimeout("updateServerState()", UPDATE_INTERVAL);
+
+	//---------------------------------------------------
+	// respond to click each server
+	//---------------------------------------------------
 	$(document).on('click', '.server-entry', function(){
 	    $indicator = $(this).find('.on-indicator');
 	    var offState = $indicator.hasClass('off-state');
@@ -50,12 +59,40 @@ var transitCount = 0;
 	    }
 	});
 
-	setTimeout("updateServerState()", UPDATE_INTERVAL);
+	//---------------------------------------------------
+	// drower menu operation
+	//---------------------------------------------------
+	var $close = $();
+
+	$(document).on('click', '.menu-btn', function(){
+	    $menu = $(this).parent();
+	    $modal = $('.modal');
+	    if ($menu.hasClass('menu-open')){
+		$menu.removeClass('menu-open');
+		$modal.removeClass('modal-inactive');
+		$close = $();
+	    }else{
+		$menu.addClass('menu-open');
+		$modal.addClass('modal-inactive');
+		$close = $menu;
+	    }
+	});
+
+	$(document).on('click', '.modal', function(){
+	    $modal = $('.modal');
+	    $close.removeClass('menu-open');
+	    $modal.removeClass('modal-inactive');
+	    $close = $();
+	});
 
 	return false;
     });
 })(jQuery);
 
+
+//---------------------------------------------------
+// functions to update server entry
+//---------------------------------------------------
 function updateServerState(){
     (function($) {
 	$.get('cgi-bin/wakeserver-get.cgi', '', function(text){
