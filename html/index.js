@@ -117,7 +117,7 @@ var defaults = {
 		toggleMenu($(this));
 	    }else{
 		var param = {
-		    title: "Not impremented",
+		    title: "Not implemented",
 		    message: "Please wait releasing a new revision " + 
 			     "which implement this feature.",
 		    buttons: OkDialog,
