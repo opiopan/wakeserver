@@ -40,22 +40,36 @@ var transitCount = 0;
 	// respond to click each server
 	//---------------------------------------------------
 	$(document).on('click', '.server-entry', function(){
-	    $indicator = $(this).find('.on-indicator');
+	    var $indicator = $(this).find('.on-indicator');
 	    var offState = $indicator.hasClass('off-state');
 	    var transitToOn = $indicator.hasClass('transit-to-on');
 	    if (offState && !transitToOn){
-		var param = {"target" : this.id};
-		$.post('cgi-bin/wakeserver-wake.cgi', param, function(data) {
-		    var foo = data;
+		var message = 
+		    "Are you sure to wake up a server '" + this.id + "' ?";
+		var param = {
+		    title: "Confirmation",
+		    message: message,
+		    buttons: YesNoDialog,
+		    definitive: false
+		};
+		var target = this.id;
+		popupDialog(param, function(result){
+		    if (result != 'Yes') return;
+		    
+		    var url = 'cgi-bin/wakeserver-wake.cgi';
+		    var param = {"target" : target};
+		    $.post(url, param, function(data) {
+			var foo = data;
+		    });
+		    var counter = transitCount++;
+		    $indicator.attr('transit-counter', counter);
+		    $indicator.addClass('transit-to-on');
+		    setTimeout(function(){
+			if ($indicator.attr('transit-counter') == counter){
+			    $indicator.removeClass('transit-to-on');
+			}
+		    }, TRANSITION_TIMEOUT);
 		});
-		var counter = transitCount++;
-		$indicator.attr('transit-counter', counter);
-		$indicator.addClass('transit-to-on');
-		setTimeout(function(){
-		    if ($indicator.attr('transit-counter') == counter){
-			$indicator.removeClass('transit-to-on');
-		    }
-		}, TRANSITION_TIMEOUT);
 	    }
 	});
 
@@ -110,7 +124,7 @@ function updateServerState(){
 
 function applyServerState($node, server){
     (function($) {
-	$indicator = $node.find('.on-indicator');
+	var $indicator = $node.find('.on-indicator');
 	var inOffState = $indicator.hasClass('off-state');
 	if (inOffState && server.status == 'on'){
 	    $indicator.removeClass('off-state');
@@ -121,3 +135,62 @@ function applyServerState($node, server){
     })(jQuery);
 }
 
+//---------------------------------------------------
+// confirmation dialog
+//---------------------------------------------------
+
+var YesNoDialog = [{
+    name: "Yes",
+    isDefault: false,
+},{
+    name: "No",
+    isDefault: true,
+}];
+
+function popupDialog(params, callback){
+    (function($) {
+	if (params.definitive){
+	    if (callback){
+		callback(params.definitive);
+	    }
+	}else{
+	    $dialog = $('#popup-dialog')
+	    if ($dialog.hasClass('modal-active')){
+		if (callback){
+		    callback(null);
+		}
+	    }else{
+		$frame = $dialog.find('.dialog-frame');
+		$title = $frame.find('.title').empty();
+		$message = $frame.find('.message').empty();
+		$placeholder = $frame.find('.button-placeholder').empty();
+
+		$title.append(params.title);
+		$message.append(params.message);
+		var i;
+		for (i in params.buttons){
+		    var button = params.buttons[i];
+		    var $button = $('<div/>').append(button.name);
+		    $button.addClass('button');
+		    $button.attr('button-id', button.name);
+		    if (button.isDefault){
+			$button.addClass('default-button');
+		    }
+		    $placeholder.append($button);
+		}
+		$placeholder.find('.button')
+		    .css('width', '' + 100 / params.buttons.length + '%');
+
+		$dialog.find('.button').on('click', function(){
+		    $dialog.find('.button').off('click');
+		    $dialog.removeClass('modal-active');
+		    if (callback){
+			callback($(this).attr('button-id'));
+		    }
+		});
+
+		$dialog.addClass('modal-active');
+	    }
+	}
+    })(jQuery);
+}
