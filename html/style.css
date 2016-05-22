@@ -58,7 +58,7 @@ header .logo {
 .drawer-menu { 
   display: block;
   position: fixed;
-  width: 300px;
+  width: 370px;
   height: 100%;
   top:0;
   left:calc(100%);
@@ -74,6 +74,7 @@ header .logo {
   height: 40px;
   top: 6px;
   left: -60px;
+  margin-bottom: 30px;
   border-radius: 50%;
   color: #909090;
   cursor: pointer;
@@ -85,7 +86,7 @@ header .logo {
 }
 
 .menu-open {
-  left:calc(100% - 300px);
+  left:calc(100% - 370px);
 }
 
 .menu-open .menu-btn { 
@@ -156,6 +157,77 @@ header .logo {
   z-index: 15;
 }
 
+.menu-list { 
+  display: block;
+  width: 100%;
+}
+
+.menu-item {
+  display: block;
+  position: relative;
+  width: 100%;
+  color: #c0c0c0;
+  font-size: 14pt;
+  font-weight: 300;
+  border-bottom: #606060 solid 1px;
+  cursor: pointer;
+  transition: .3s linear;
+}
+
+.menu-list .menu-item:first-child {
+  border-top: #606060 solid 1px;
+}
+
+.menu-item:hover {
+  color: #0B61FF;
+  text-shadow: 0 0 10px #5586FF;
+  box-shadow: 0 0 10px #5586FF inset;
+}
+
+.menu-item > * {
+  display: block;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 25px;
+}
+
+.menu-item .toggle-btn {
+  position: absolute;
+  width: 70px;
+  height: 40px;
+  padding: 0;
+  top: 12px;
+  left: calc(100% - 95px);
+  box-sizing:border-box;  
+  border-radius: 20px;
+  border: #909090 solid 1px;
+  background: #707070;
+  transition: .2s linear;
+}
+
+.menu-item .toggle-btn:before {
+  content: "";
+  display: block;
+  position: absolute;
+  height: 40px;
+  width: 40px;
+  top: calc(50% - 20px);
+  left: -0.5px;
+  box-sizing:border-box;  
+  border-radius: 50%;
+  border: #909090 solid 1px;
+  background: #505050;
+  transition: .2s linear;
+}
+
+.toggle-on .toggle-btn {
+  background: #5586FF;
+}
+
+.toggle-on .toggle-btn:before {
+  left: calc(100% - 40px + 0.5px);
+}
+
 /* for small screen device */
 @media screen and (max-width: 767px) {
   .drawer-menu {
@@ -173,6 +245,20 @@ header .logo {
 
   .menu-open .menu-btn { 
     left: calc(100% - 45px);
+  }
+
+  .menu-item > * { 
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+  .toggle-menu > *:first-child {
+    padding-bottom: 65px;
+  }
+
+  .menu-item .toggle-btn {
+    top: 50px;
+    left: calc(50% - 35px);
   }
 }
 

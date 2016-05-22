@@ -52,10 +52,6 @@
   </head>
 
   <body>
-    <!-- drawer menu -->
-    <div class="drawer-menu">
-      <span class="menu-btn"><span></span></span>
-    </div>
 
     <div class="modal">
       <!-- header -->
@@ -71,15 +67,28 @@
       </div>
     </div>
 
+    <!-- drawer menu -->
+    <div class="drawer-menu">
+      <span class="menu-btn"><span></span></span>
+      <div class="menu-list">
+	<div class="menu-item toggle-menu" id="confirm-wake-up">
+	  <span>Confirm when wake up</span> <span class="toggle-btn"></span>
+	</div>
+	<div class="menu-item toggle-menu" id="confirm-shut-down">
+	  <span>Confirm when shut down</span> <span class="toggle-btn"></span>
+	</div>
+	<div class="menu-item"><span>Edit configuration</span></div>
+	<div class="menu-item"><span>About this service</span></div>
+      </div>
+    </div>
+
     <!-- confirmation dialog -->
     <div id="popup-dialog" class="dialog">
       <div class="dialog-base">
 	<div class="dialog-frame">
-	  <div class="title">Confirmation</div>
-	  <div class="message">Are you sure to wake up a server "moon"?</div>
+	  <div class="title"></div>
+	  <div class="message"></div>
 	  <div class="button-placeholder">
-	    <div class="button">Yes</div>
-	    <div class="button">No</div>
 	  </div>
 	</div>
       </div>

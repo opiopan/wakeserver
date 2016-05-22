@@ -2,6 +2,11 @@ var UPDATE_INTERVAL = 2000;
 var TRANSITION_TIMEOUT = 120 * 1000;
 var transitCount = 0;
 
+var defaults = {
+    "confirm-wake-up": 'true',
+    "confirm-shut-down": 'true'
+};
+
 (function($) {
     $(document).ready(function(){
 
@@ -37,6 +42,12 @@ var transitCount = 0;
 	setTimeout("updateServerState()", UPDATE_INTERVAL);
 
 	//---------------------------------------------------
+	// set up inital state of controls in drawer menu
+	//---------------------------------------------------
+	reflectToToggleMenu('confirm-wake-up');
+	reflectToToggleMenu('confirm-shut-down');
+	
+	//---------------------------------------------------
 	// respond to click each server
 	//---------------------------------------------------
 	$(document).on('click', '.server-entry', function(){
@@ -50,7 +61,8 @@ var transitCount = 0;
 		    title: "Confirmation",
 		    message: message,
 		    buttons: YesNoDialog,
-		    definitive: false
+		    definitive: configValue('confirm-wake-up') != 'true',
+		    definitiveValue: "Yes"
 		};
 		var target = this.id;
 		popupDialog(param, function(result){
@@ -93,10 +105,27 @@ var transitCount = 0;
 	});
 
 	$(document).on('click', '.modal', function(){
-	    $modal = $('.modal');
+	    var $modal = $('.modal');
 	    $close.removeClass('menu-open');
 	    $modal.removeClass('modal-inactive');
 	    $close = $();
+	});
+
+	$(document).on('click', '.menu-item', function(){
+	    if (this.id == 'confirm-wake-up' || 
+		this.id == 'confirm-shut-down'){
+		toggleMenu($(this));
+	    }else{
+		var param = {
+		    title: "Not impremented",
+		    message: "Please wait releasing a new revision " + 
+			     "which implement this feature.",
+		    buttons: OkDialog,
+		    definitive: false,
+		    definitiveValue: false
+		};
+		popupDialog(param);
+	    }
 	});
 
 	return false;
@@ -147,11 +176,16 @@ var YesNoDialog = [{
     isDefault: true,
 }];
 
+var OkDialog = [{
+    name: 'OK',
+    isDefault: true
+}];
+
 function popupDialog(params, callback){
     (function($) {
 	if (params.definitive){
 	    if (callback){
-		callback(params.definitive);
+		callback(params.definitiveValue);
 	    }
 	}else{
 	    $dialog = $('#popup-dialog')
@@ -192,5 +226,43 @@ function popupDialog(params, callback){
 		$dialog.addClass('modal-active');
 	    }
 	}
+    })(jQuery);
+}
+
+//---------------------------------------------------
+// toggle switch
+//---------------------------------------------------
+function configValue(nodeid){
+    var value = localStorage.getItem(nodeid);
+    if (!value){
+	value = defaults[nodeid];
+    }
+
+    return value;
+}
+
+function reflectToToggleMenu(nodeid){
+    (function($) {
+	var value = configValue(nodeid);
+	var $node = $('#' + nodeid);
+	$node.removeClass('toggle-on');
+	if (value == 'true'){
+	    $node.addClass('toggle-on');
+	}
+    })(jQuery);
+}
+
+function toggleMenu($node){
+    (function($) {
+	var key = $node.attr("id");
+	var value;
+	if ($node.hasClass('toggle-on')){
+	    $node.removeClass('toggle-on');
+	    value = 'false';
+	}else{
+	    $node.addClass('toggle-on');
+	    value = 'true';
+	}
+	localStorage.setItem(key, value);
     })(jQuery);
 }
