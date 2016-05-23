@@ -76,17 +76,13 @@ header .logo {
   left: -60px;
   margin-bottom: 30px;
   border-radius: 50%;
-  color: #909090;
   cursor: pointer;
   transition: 0.2s linear;
 }
 
-.drawer-menu .menu-btn:hover {
-  color: #707070;
-}
-
 .menu-open {
   left:calc(100% - 370px);
+  overflow-y: scroll;
 }
 
 .menu-open .menu-btn { 
@@ -100,7 +96,7 @@ header .logo {
   height: 3px;
   top: calc(50% - 1.5px);
   left: calc(50% - 35%);
-  background: currentcolor;
+  background: #909090;
   transition: 0.2s linear;
 }
 
@@ -111,8 +107,13 @@ header .logo {
   height: 3px;
   top: -10px;
   left: 0;
-  background: currentcolor;
+  background: #909090;
   transition: 0.2s linear;
+}
+
+.menu-btn:hover > *, .menu-btn:hover > *:before, .menu-btn:hover > *:after {
+  background: #19C4C4;
+  box-shadow: 0 0 10px #a0a0a0;
 }
 
 .menu-btn > *:after {
@@ -123,6 +124,7 @@ header .logo {
   width: 90%;
   left: 5%;
   background: none;
+  box-shadow: none;
 }
 
 .menu-open .menu-btn > *:before {
@@ -179,9 +181,9 @@ header .logo {
 }
 
 .menu-item:hover {
-  color: #0B61FF;
-  text-shadow: 0 0 10px #5586FF;
-  box-shadow: 0 0 10px #5586FF inset;
+  color: #19C4C4;
+  text-shadow: 0 0 10px #a0a0a0;
+  box-shadow: 0 0 10px #19C4C4 inset;
 }
 
 .menu-item > * {
@@ -198,10 +200,11 @@ header .logo {
   padding: 0;
   top: 12px;
   left: calc(100% - 95px);
-  box-sizing:border-box;  
+  color: #707070;
+  box-sizing:border-box;
   border-radius: 20px;
-  border: #909090 solid 1px;
-  background: #707070;
+  border: currentcolor solid 1px;
+  background: currentcolor;
   transition: .2s linear;
 }
 
@@ -209,29 +212,29 @@ header .logo {
   content: "";
   display: block;
   position: absolute;
-  height: 40px;
-  width: 40px;
-  top: calc(50% - 20px);
-  left: -0.5px;
+  height: 38px;
+  width: 38px;
+  top: calc(50% - 19px);
+  left: 0px;
   box-sizing:border-box;  
   border-radius: 50%;
-  border: #909090 solid 1px;
+  border: none;
   background: #505050;
   transition: .2s linear;
 }
 
 .toggle-on .toggle-btn {
-  background: #5586FF;
+  color: #19C4C4;
 }
 
 .toggle-on .toggle-btn:before {
-  left: calc(100% - 40px + 0.5px);
+  left: calc(100% - 38px);
 }
 
 /* for small screen device */
 @media screen and (max-width: 767px) {
   .drawer-menu {
-    width: 250px;
+    width: 270px;
   }
 
   .drawer-menu .menu-btn {
@@ -239,26 +242,42 @@ header .logo {
     top: 5px;
   }
 
+  .menu-btn:hover > *, .menu-btn:hover > *:before, .menu-btn:hover > *:after {
+    background: #909090;
+    box-shadow: none;
+  }
+
   .menu-open {
-    left:calc(100% - 250px);
+    left:calc(100% - 270px);
   }
 
   .menu-open .menu-btn { 
     left: calc(100% - 45px);
   }
 
-  .menu-item > * { 
-    padding-left: 0;
-    padding-right: 0;
-    text-align: center;
+  .menu-open .menu-btn > * {
+    background: none;
   }
-  .toggle-menu > *:first-child {
-    padding-bottom: 65px;
+
+  .menu-item > * { 
+    padding-left: 15px;
   }
 
   .menu-item .toggle-btn {
-    top: 50px;
-    left: calc(50% - 35px);
+    width: 49px;
+    height: 28px;
+    top: calc(50% - 14px);
+    left: calc(100% - 49px - 15px);
+  }
+
+  .menu-item .toggle-btn:before {
+    width: 26px;
+    height: 26px; 
+    top: calc(50% - 13px);
+  }
+
+  .toggle-on .toggle-btn:before {
+    left: calc(100% - 26px);
   }
 }
 
