@@ -9,6 +9,7 @@ CONF =        "/var/www/wakeserver/servers.conf"
 PIDFILE =     "/run/wakeserverd.pid"
 STATUS_DIR =  "/run/wakeserver"
 STATUS_FILE = "/run/wakeserver/status"
+STATUS_FILE_NEW = "/run/wakeserver/status.new"
 INTERVAL =    1
 
 class Daemon :
@@ -31,8 +32,9 @@ class Daemon :
                     time.sleep(INTERVAL)
                 else:
                     server["status"] = "off"
-            with open(STATUS_FILE, "w") as f:
+            with open(STATUS_FILE_NEW, "w") as f:
                 json.dump(self.servers, f)
+            os.rename(STATUS_FILE_NEW, STATUS_FILE)
 
 def main():
     if daemonize(False, False) == 0:

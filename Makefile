@@ -30,6 +30,7 @@ apache2restart: copyfiles apache2config
 
 daemonrestart: $(DAEMON) $(SERVICE_CONF)
 	systemctl daemon-reload || exit 1
+	systemctl enable wakeserver.service || exit 1
 	systemctl restart wakeserver.service || exit 1
 
 copyfiles: $(SITE_CONF_DIR) $(HTML_DIR) $(WAKEONLAN) daemon

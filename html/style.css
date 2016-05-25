@@ -265,19 +265,19 @@ header .logo {
 
   .menu-item .toggle-btn {
     width: 49px;
-    height: 28px;
-    top: calc(50% - 14px);
+    height: 30px;
+    top: calc(50% - 15px);
     left: calc(100% - 49px - 15px);
   }
 
   .menu-item .toggle-btn:before {
-    width: 26px;
-    height: 26px; 
-    top: calc(50% - 13px);
+    width: 28px;
+    height: 28px; 
+    top: calc(50% - 14px);
   }
 
   .toggle-on .toggle-btn:before {
-    left: calc(100% - 26px);
+    left: calc(100% - 28px);
   }
 }
 
