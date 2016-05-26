@@ -82,6 +82,45 @@ var defaults = {
 			}
 		    }, TRANSITION_TIMEOUT);
 		});
+	    }else if (!offState && !transitToOn){
+		var message = 
+		    "Are you sure to stop a server '" + this.id + "' ?";
+		var param = {
+		    title: "Confirmation",
+		    message: message,
+		    buttons: YesNoDialog,
+		    definitive: configValue('confirm-shut-down') != 'true',
+		    definitiveValue: "Yes"
+		};
+		var target = this.id;
+		popupDialog(param, function(result){
+		    if (result != 'Yes') return;
+		    
+		    var url = 'cgi-bin/wakeserver-sleep.cgi';
+		    var param = {"target" : target};
+		    $.post(url, param, function(data) {
+			var result = JSON.parse(data);
+			if (!result.result){
+			    var param = {
+				title: "Fail to stop a server",
+				message: result.message,
+				buttons: OkDialog,
+				definitive: false,
+				definitiveValue: false
+			    };
+			    popupDialog(param);
+			    $indicator.removeClass('transit-to-on');
+			}
+		    });
+		    var counter = transitCount++;
+		    $indicator.attr('transit-counter', counter);
+		    $indicator.addClass('transit-to-on');
+		    setTimeout(function(){
+			if ($indicator.attr('transit-counter') == counter){
+			    $indicator.removeClass('transit-to-on');
+			}
+		    }, TRANSITION_TIMEOUT);
+		});
 	    }
 	});
 
@@ -160,6 +199,7 @@ function applyServerState($node, server){
 	    $indicator.removeClass('transit-to-on');
 	}else if (!inOffState && server.status == 'off'){
 	    $indicator.addClass('off-state');
+	    $indicator.removeClass('transit-to-on');
 	}
     })(jQuery);
 }

@@ -17,6 +17,8 @@ class Daemon :
         with open(CONF) as f:
             self.servers = json.load(f)
         for server in self.servers:
+            if "user" in server["scheme"]:
+                del server["scheme"]["user"]
             server["status"] = "off"
         if not os.path.isdir(STATUS_DIR):
             os.mkdir(STATUS_DIR)

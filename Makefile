@@ -5,6 +5,7 @@ SITE_CONF_DIR		= /etc/apache2/sites-available
 SERVERS_DIR		= /var/www/wakeserver
 HTML_DIR		= /var/www/wakeserver/html
 CGI_DIR			= /usr/lib/cgi-bin
+SBIN_DIR		= /var/www/wakeserver/sbin
 DAEMON_DIR		= /var/www/wakeserver/daemon
 DAEMON			= $(DAEMON_DIR)/wakeserverd
 SERVICE_CONF		= /etc/systemd/system/wakeserver.service
@@ -19,7 +20,8 @@ ADDOPTION		= tool/addoption
 CGIENABLING		= '^<Directory \/var\/www\/>' Options \
 			  '\+ExecCGI' '+ExecCGI'
 
-CGIS			= wakeserver-get.cgi wakeserver-wake.cgi
+CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
+			  wakeserver-sleep.cgi
 
 all:
 
@@ -33,13 +35,20 @@ daemonrestart: $(DAEMON) $(SERVICE_CONF)
 	systemctl enable wakeserver.service || exit 1
 	systemctl restart wakeserver.service || exit 1
 
-copyfiles: $(SITE_CONF_DIR) $(HTML_DIR) $(WAKEONLAN) daemon
+copyfiles: $(SITE_CONF_DIR) $(HTML_DIR) $(WAKEONLAN) daemon $(SBIN_DIR) commands
 	cp apache-conf/wakeserver.conf $(SITE_CONF_DIR) || exit 1
 	cp conf/servers.conf $(SERVERS_DIR) || exit 1
 	cp -R html/* $(HTML_DIR) || exit 1
 	for f in $(CGIS);do \
 	    $(INSTALL) -m755 cgi-bin/$$f $(CGI_DIR)/$$f || exit 1; \
 	done
+	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
+
+commands: sbin
+	make -C src
+
+sbin $(SBIN_DIR):
+	mkdir $@
 
 daemon: $(DAEMON) $(SERVICE_CONF)
 
