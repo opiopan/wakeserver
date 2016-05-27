@@ -64,9 +64,8 @@ if target != "":
                            response["message"] = \
                                "An error occurred at server\n" +\
                                result[1]
-                           
+
 
 print "Content-type: text/javascript; charset=utf-8"
 print
-
 print json.dumps(response)

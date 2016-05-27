@@ -58,7 +58,7 @@ var defaults = {
 		var message = 
 		    "Are you sure to wake up a server '" + this.id + "' ?";
 		var param = {
-		    title: "Confirmation",
+		    title: "Wake up a Server",
 		    message: message,
 		    buttons: YesNoDialog,
 		    definitive: configValue('confirm-wake-up') != 'true',
@@ -86,7 +86,7 @@ var defaults = {
 		var message = 
 		    "Are you sure to stop a server '" + this.id + "' ?";
 		var param = {
-		    title: "Confirmation",
+		    title: "Stop a Server",
 		    message: message,
 		    buttons: YesNoDialog,
 		    definitive: configValue('confirm-shut-down') != 'true',
@@ -96,22 +96,28 @@ var defaults = {
 		popupDialog(param, function(result){
 		    if (result != 'Yes') return;
 		    
-		    var url = 'cgi-bin/wakeserver-sleep.cgi';
-		    var param = {"target" : target};
-		    $.post(url, param, function(data) {
-			var result = JSON.parse(data);
-			if (!result.result){
-			    var param = {
+		    var param = {
+		        type: "POST",
+			url: 'cgi-bin/wakeserver-sleep.cgi',
+			data: {"target" : target},
+			scriptCharset: 'utf-8',
+			dataType:'json',
+			success: function(result) {
+			    if (!result.result){
+				var param = {
 				title: "Fail to stop a server",
 				message: result.message,
 				buttons: OkDialog,
 				definitive: false,
 				definitiveValue: false
-			    };
-			    popupDialog(param);
-			    $indicator.removeClass('transit-to-on');
+				};
+				popupDialog(param);
+				$indicator.removeClass('transit-to-on');
+			    }
 			}
-		    });
+		    };
+		    
+		    $.ajax(param);
 		    var counter = transitCount++;
 		    $indicator.attr('transit-counter', counter);
 		    $indicator.addClass('transit-to-on');
