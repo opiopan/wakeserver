@@ -62,7 +62,7 @@ if target != "":
                            response["message"] = "Succeed"
                        else:
                            response["message"] = \
-                               "An error occurred at server\n" +\
+                               "An error occurred at server\n\n" +\
                                result[1]
 
 

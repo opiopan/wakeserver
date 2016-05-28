@@ -95,8 +95,8 @@ var defaults = {
 		var target = this.id;
 		popupDialog(param, function(result){
 		    if (result != 'Yes') return;
-		    
-		    var param = {
+
+		    $.ajax({
 		        type: "POST",
 			url: 'cgi-bin/wakeserver-sleep.cgi',
 			data: {"target" : target},
@@ -115,9 +115,8 @@ var defaults = {
 				$indicator.removeClass('transit-to-on');
 			    }
 			}
-		    };
-		    
-		    $.ajax(param);
+		    });
+
 		    var counter = transitCount++;
 		    $indicator.attr('transit-counter', counter);
 		    $indicator.addClass('transit-to-on');
@@ -187,7 +186,7 @@ function updateServerState(){
 	    var servers = JSON.parse(text);
 	    var i = 0;
 	    $('.server-list .server-entry').each(function(){
-		applyServerState($(this), servers[i]);		    
+		applyServerState($(this), servers[i]);
 		i++;
 	    });
 	    
@@ -246,7 +245,7 @@ function popupDialog(params, callback){
 		$placeholder = $frame.find('.button-placeholder').empty();
 
 		$title.append(params.title);
-		$message.append(params.message);
+		$message.append(params.message.replace(/\n/g, "<br>"));
 		var i;
 		for (i in params.buttons){
 		    var button = params.buttons[i];
