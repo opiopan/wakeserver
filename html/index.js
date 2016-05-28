@@ -1,4 +1,5 @@
 var UPDATE_INTERVAL = 2000;
+var UPDATE_INTERVAL_ERROR = 5000;
 var TRANSITION_TIMEOUT = 120 * 1000;
 var transitCount = 0;
 
@@ -182,15 +183,24 @@ var defaults = {
 //---------------------------------------------------
 function updateServerState(){
     (function($) {
-	$.get('cgi-bin/wakeserver-get.cgi', '', function(text){
-	    var servers = JSON.parse(text);
-	    var i = 0;
-	    $('.server-list .server-entry').each(function(){
-		applyServerState($(this), servers[i]);
-		i++;
-	    });
-	    
-	    setTimeout("updateServerState()", UPDATE_INTERVAL);
+	$.ajax({
+	    type: "GET",
+	    url: 'cgi-bin/wakeserver-get.cgi',
+	    scriptCharset: 'utf-8',
+	    dataType:'json',
+	    success: function(servers) {
+		var i = 0;
+		$('.server-list .server-entry').each(function() {
+		    applyServerState($(this), servers[i]);
+		    i++;
+		});
+		$('header .logo').removeClass('error-logo');
+		setTimeout("updateServerState()", UPDATE_INTERVAL);
+	    },
+	    error: function(xhr, textStatus, errorThrown) {
+		$('header .logo').addClass('error-logo');
+		setTimeout("updateServerState()", UPDATE_INTERVAL_ERROR);
+	    }
 	});
     })(jQuery);
 }

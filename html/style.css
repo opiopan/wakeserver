@@ -30,10 +30,26 @@ header {
 header .logo { 
   display: block;
   position: absolute;
-  top: 12px;
-  left: 17px;
   width: 1.2em;
   height: 1.2em;
+  top: calc(50% - 0.6em);
+  left: 17px;
+  background-image: url("images/wakeserver-icon-warning.svg");
+  background-size: contain;
+}
+
+header .logo:before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-image: url("images/wakeserver-icon.svg");
+  background-size: contain;
+  transition: 0.3s linear;
+}
+
+header .error-logo:before {
+  opacity: 0;
 }
 
 /* for small screen device */
@@ -48,7 +64,7 @@ header .logo {
   header .logo {
     width: 1.5em;
     height: 1.5em;
-    top: 11px;
+    top: calc(50% - 0.75em);
   }
 }
 
