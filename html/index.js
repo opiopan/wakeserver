@@ -145,6 +145,7 @@ var defaults = {
 	    }else{
 		$menu.addClass('menu-open');
 		$modal.addClass('modal-inactive');
+		resetAboutSheet();
 		$close = $menu;
 	    }
 	});
@@ -160,6 +161,8 @@ var defaults = {
 	    if (this.id == 'confirm-wake-up' || 
 		this.id == 'confirm-shut-down'){
 		toggleMenu($(this));
+	    }else if (this.id == 'about-service'){
+		showAboutSheet();
 	    }else{
 		var param = {
 		    title: "Not implemented",
@@ -173,6 +176,25 @@ var defaults = {
 	    }
 	});
 
+	//---------------------------------------------------
+	// SVG load
+	//---------------------------------------------------
+	$('.svg-placeholder').each(function(){
+	    var $placeholder = $(this);
+	    var svg = $placeholder.attr("svg-path");
+	    $placeholder.load(svg + " svg", function(){
+		var $this = $(this);
+		if ($this.hasClass("svg-animate")){
+		    initSvgAnimation(this);
+		}; 
+	    });
+	});
+
+	//---------------------------------------------------
+	// reset about sheet
+	//---------------------------------------------------
+	resetAboutSheet();
+	
 	return false;
     });
 })(jQuery);
@@ -319,5 +341,65 @@ function toggleMenu($node){
 	    value = 'true';
 	}
 	localStorage.setItem(key, value);
+    })(jQuery);
+}
+
+//---------------------------------------------------
+// SVG animation
+//---------------------------------------------------
+function initSvgAnimation(node){
+    paths = new Array();
+    [].slice.call(node.querySelectorAll('path')).forEach(function( path, i ){
+	paths[i] = path;
+	var leng = paths[i].getTotalLength();
+	paths[i].style.strokeDasharray = leng + ' ' + leng;
+	paths[i].style.strokeDashoffset = leng;
+    } );
+}
+
+//---------------------------------------------------
+// about sheet
+//---------------------------------------------------
+var aboutSheetPhase = 0;
+
+function resetAboutSheet(){
+    (function($) {
+	$('.about-sheet').removeClass('about-sheet-show');
+	$('.about-sheet .hidable').addClass('hide');
+	$('.about-sheet .svg-animate').removeClass('svg-draw');
+    })(jQuery);
+}
+
+function showAboutSheet(){
+    (function($) {
+	$('.about-sheet').addClass('about-sheet-show');
+	aboutSheetPhase = 0;
+	transitAboutSheet();
+    })(jQuery);
+}
+
+function transitAboutSheet(){
+    (function($) {
+	if (!$('.about-sheet').hasClass('about-sheet-show')){
+	    return;
+	}
+	
+	aboutSheetPhase++;
+	
+	if (aboutSheetPhase == 1){
+	    setTimeout("transitAboutSheet()", 700);
+	}else if (aboutSheetPhase == 2){
+	    $('.about-sheet .title').removeClass('hide');
+	    setTimeout("transitAboutSheet()", 400);
+	}else if (aboutSheetPhase == 3){
+	    $('#raspi-line').addClass('svg-draw');
+	    setTimeout("transitAboutSheet()", 2600);
+	}else if (aboutSheetPhase == 4){
+	    $('#raspi-image').removeClass('hide');
+	    setTimeout("transitAboutSheet()", 1200);
+	}else if (aboutSheetPhase == 5){
+	    $('#raspi-title').removeClass('hide');
+	    $('.about-sheet .remark').removeClass('hide');
+	}	
     })(jQuery);
 }

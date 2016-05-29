@@ -69,7 +69,7 @@
 
     <!-- drawer menu -->
     <div class="drawer-menu">
-      <span class="menu-btn"><span></span></span>
+      <div class="menu-btn"><span></span></div>
       <div class="menu-list">
 	<div class="menu-item toggle-menu" id="confirm-wake-up">
 	  <span>Confirm wake up</span> <span class="toggle-btn"></span>
@@ -78,7 +78,25 @@
 	  <span>Confirm shut down</span> <span class="toggle-btn"></span>
 	</div>
 	<div class="menu-item"><span>Edit configuration</span></div>
-	<div class="menu-item"><span>About this service</span></div>
+	<div class="menu-item" id="about-service">
+	  <span>About this service</span>
+	</div>
+      </div>
+      <div class="about-sheet">
+	<div class="title hidable">This service is designed for</div>
+	<div class="icon">
+	  <div id="raspi-line" class="svg-placeholder svg-animate"
+	       svg-path="images/raspberrypi.svg"></div>
+	  <div id="raspi-image" class="hidable"></div>
+	  <div id="raspi-title" class="hidable">Raspberry Pi</div>
+	</div>
+	<div class="remark hidable">
+	  <p>Copy right 2016 opiopan. <br>All rights reserved.</p>
+	  <p>
+	    Source is publishd at
+	    <a href="https://github.com/opiopan/wakeserver">GitHub</a>.
+	  </p>
+	</div>
       </div>
     </div>
 

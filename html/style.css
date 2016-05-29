@@ -34,7 +34,7 @@ header .logo {
   height: 1.2em;
   top: calc(50% - 0.6em);
   left: 17px;
-  background-image: url("images/wakeserver-icon-warning.svg");
+  background-image: url("images/wakeserver-icon.svg");
   background-size: contain;
 }
 
@@ -43,13 +43,14 @@ header .logo:before {
   display: block;
   width: 100%;
   height: 100%;
-  background-image: url("images/wakeserver-icon.svg");
+  background-image: url("images/wakeserver-icon-warning.svg");
   background-size: contain;
   transition: 0.3s linear;
+  opacity: 0;
 }
 
 header .error-logo:before {
-  opacity: 0;
+  opacity: 1;
 }
 
 /* for small screen device */
@@ -92,6 +93,7 @@ header .error-logo:before {
   left: -60px;
   margin-bottom: 30px;
   border-radius: 50%;
+  z-index: 21;
   cursor: pointer;
   transition: 0.2s linear;
 }
@@ -294,6 +296,113 @@ header .error-logo:before {
 
   .toggle-on .toggle-btn:before {
     left: calc(100% - 28px);
+  }
+}
+
+/*------------------------------------------------------------
+ About sheet
+------------------------------------------------------------*/
+.about-sheet {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 100%;
+  color: white;
+  text-align: center;
+  background-color:#404040;
+  transition: .2s linear;
+}
+
+.about-sheet-show {
+  left: 0;
+}
+
+.about-sheet a {
+  color: yellow;
+}
+
+.about-sheet .title {
+  display: block;
+  position: relative;
+  margin-top: 100px;
+  margin-bottom: 1em;
+  font-size: 20pt;
+  transition: .4s linear;
+}
+
+.about-sheet .icon {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 150px;
+}
+
+.about-sheet #raspi-line {
+  display: block;
+  position: relative;
+  height: 100%;
+}
+
+.about-sheet #raspi-image {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  background-image: url("images/raspberrypi.png");
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  transition: 2s linear;
+}
+
+.about-sheet #raspi-title {
+  display: block;
+  position: absolute;
+  width: 100%;
+  top: calc(50% - 0.5em);
+  font-size: 20pt;
+  font-weight: 400;
+  text-shadow: 0 0 10px #FFFFFF;
+  color: #19C4C4;
+  color: rgba(0,0,0,0);
+  transition: .4s linear;
+}
+
+.about-sheet .remark {
+  margin-top: 2em;
+  transition: .4s linear;
+}
+
+.svg-placeholder svg {
+  width: 100%;
+  height: 100%;
+}
+
+.svg-animate path {
+  transition: stroke-dashoffset 3s ease;
+}
+
+.svg-draw path {
+  stroke-dashoffset: 0 !important;	    
+  transition: stroke-dashoffset 2.5s ease;
+}
+
+/* for small screen device */
+@media screen and (max-width: 767px) {
+  .about-sheet .title {
+    margin-top: 80px;
+    font-size: 16pt;
+  }
+
+  .about-sheet .icon {
+    height: 110px;
+  }
+
+  .about-sheet #raspi-title {
+    font-size: 18pt;
   }
 }
 
@@ -591,4 +700,11 @@ header .error-logo:before {
 
 .dialog .default-button { 
   font-weight: 500;
+}
+
+/*------------------------------------------------------------
+ Common
+------------------------------------------------------------*/
+.hide {
+  opacity: 0;
 }
