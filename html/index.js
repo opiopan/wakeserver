@@ -349,12 +349,27 @@ function toggleMenu($node){
 //---------------------------------------------------
 function initSvgAnimation(node){
     paths = new Array();
-    [].slice.call(node.querySelectorAll('path')).forEach(function( path, i ){
-	paths[i] = path;
-	var leng = paths[i].getTotalLength();
-	paths[i].style.strokeDasharray = leng + ' ' + leng;
-	paths[i].style.strokeDashoffset = leng;
-    } );
+    var totalLength = 0;
+    [].slice.call(node.querySelectorAll('path')).forEach(function(path, i){
+	paths[i] = {node: path, length: path.getTotalLength()};
+	totalLength += paths[i].length;
+    });
+
+    var currentLength = 0;
+    for (i = 0; i < paths.length; i++){
+	/*
+	var length = paths[i].length + 3;
+	paths[i].node.style.strokeDasharray = length + ' ' + length;
+	paths[i].node.style.strokeDashoffset = length;
+	*/
+
+	paths[i].node.style.strokeDasharray = 
+	    (totalLength - currentLength) + ' ' + 
+	    (totalLength + currentLength);
+	paths[i].node.style.strokeDashoffset = totalLength;
+
+	currentLength += paths[i].length;
+    }
 }
 
 //---------------------------------------------------
@@ -365,13 +380,13 @@ var aboutSheetPhase = 0;
 function resetAboutSheet(){
     (function($) {
 	$('.about-sheet').removeClass('about-sheet-show');
-	$('.about-sheet .hidable').addClass('hide');
-	$('.about-sheet .svg-animate').removeClass('svg-draw');
     })(jQuery);
 }
 
 function showAboutSheet(){
     (function($) {
+	$('.about-sheet .hidable').addClass('hide');
+	$('.about-sheet .svg-animate').removeClass('svg-draw');
 	$('.about-sheet').addClass('about-sheet-show');
 	aboutSheetPhase = 0;
 	transitAboutSheet();
@@ -387,18 +402,18 @@ function transitAboutSheet(){
 	aboutSheetPhase++;
 	
 	if (aboutSheetPhase == 1){
-	    setTimeout("transitAboutSheet()", 700);
+	    setTimeout("transitAboutSheet()", 800);
 	}else if (aboutSheetPhase == 2){
 	    $('.about-sheet .title').removeClass('hide');
-	    setTimeout("transitAboutSheet()", 400);
+	    setTimeout("transitAboutSheet()", 700);
 	}else if (aboutSheetPhase == 3){
-	    $('#raspi-line').addClass('svg-draw');
-	    setTimeout("transitAboutSheet()", 2600);
+	    $('.raspi-line').addClass('svg-draw');
+	    setTimeout("transitAboutSheet()", 6500);
 	}else if (aboutSheetPhase == 4){
-	    $('#raspi-image').removeClass('hide');
+	    $('.raspi-image').removeClass('hide');
 	    setTimeout("transitAboutSheet()", 1200);
 	}else if (aboutSheetPhase == 5){
-	    $('#raspi-title').removeClass('hide');
+	    $('.raspi-title').removeClass('hide');
 	    $('.about-sheet .remark').removeClass('hide');
 	}	
     })(jQuery);

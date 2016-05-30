@@ -312,11 +312,13 @@ header .error-logo:before {
   color: white;
   text-align: center;
   background-color:#404040;
+  transform: scaleX(0);
   transition: .2s linear;
 }
 
 .about-sheet-show {
   left: 0;
+  transform: scaleX(1);
 }
 
 .about-sheet a {
@@ -339,13 +341,13 @@ header .error-logo:before {
   height: 150px;
 }
 
-.about-sheet #raspi-line {
+.about-sheet .raspi-line {
   display: block;
   position: relative;
   height: 100%;
 }
 
-.about-sheet #raspi-image {
+.about-sheet .raspi-image {
   display: block;
   position: absolute;
   width: 100%;
@@ -358,14 +360,14 @@ header .error-logo:before {
   transition: 2s linear;
 }
 
-.about-sheet #raspi-title {
+.about-sheet .raspi-title {
   display: block;
   position: absolute;
   width: 100%;
   top: calc(50% - 0.5em);
   font-size: 20pt;
   font-weight: 400;
-  text-shadow: 0 0 10px #FFFFFF;
+  /*text-shadow: 0 0 10px #FFFFFF;*/
   color: #19C4C4;
   color: rgba(0,0,0,0);
   transition: .4s linear;
@@ -382,12 +384,17 @@ header .error-logo:before {
 }
 
 .svg-animate path {
-  transition: stroke-dashoffset 3s ease;
+  transition: stroke-dashoffset 0s ease;
 }
 
 .svg-draw path {
-  stroke-dashoffset: 0 !important;	    
-  transition: stroke-dashoffset 2.5s ease;
+  stroke-dashoffset: 0 !important;
+  transition: stroke-dashoffset 6s ease;
+}
+
+.about-sheet .hide {
+  opacity: 0;
+  transition: 0s linear;
 }
 
 /* for small screen device */
@@ -401,7 +408,7 @@ header .error-logo:before {
     height: 110px;
   }
 
-  .about-sheet #raspi-title {
+  .about-sheet .raspi-title {
     font-size: 18pt;
   }
 }
@@ -700,11 +707,4 @@ header .error-logo:before {
 
 .dialog .default-button { 
   font-weight: 500;
-}
-
-/*------------------------------------------------------------
- Common
-------------------------------------------------------------*/
-.hide {
-  opacity: 0;
 }
