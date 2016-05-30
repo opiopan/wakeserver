@@ -384,12 +384,12 @@ header .error-logo:before {
 }
 
 .svg-animate path {
-  transition: stroke-dashoffset 0s ease;
+  transition: stroke-dashoffset 0s;
 }
 
 .svg-draw path {
   stroke-dashoffset: 0 !important;
-  transition: stroke-dashoffset 6s ease;
+  transition: stroke-dashoffset 8s ease;
 }
 
 .about-sheet .hide {

@@ -393,8 +393,13 @@ function showAboutSheet(){
     })(jQuery);
 }
 
-function transitAboutSheet(){
+var aboutSheetTransitionCount = 0;
+
+function transitAboutSheet(hash){
     (function($) {
+        if (hash && hash != aboutSheetTransitionCount){
+	    return;
+        }
 	if (!$('.about-sheet').hasClass('about-sheet-show')){
 	    return;
 	}
@@ -402,16 +407,18 @@ function transitAboutSheet(){
 	aboutSheetPhase++;
 	
 	if (aboutSheetPhase == 1){
-	    setTimeout("transitAboutSheet()", 800);
+            aboutSheetTransitionCount++;
+            hash = aboutSheetTransitionCount;
+	    setTimeout(function(){transitAboutSheet(hash);}, 800);
 	}else if (aboutSheetPhase == 2){
 	    $('.about-sheet .title').removeClass('hide');
-	    setTimeout("transitAboutSheet()", 700);
+	    setTimeout(function(){transitAboutSheet(hash);}, 700);
 	}else if (aboutSheetPhase == 3){
 	    $('.raspi-line').addClass('svg-draw');
-	    setTimeout("transitAboutSheet()", 6500);
+	    setTimeout(function(){transitAboutSheet(hash);}, 8500);
 	}else if (aboutSheetPhase == 4){
 	    $('.raspi-image').removeClass('hide');
-	    setTimeout("transitAboutSheet()", 1200);
+	    setTimeout(function(){transitAboutSheet(hash);}, 1200);
 	}else if (aboutSheetPhase == 5){
 	    $('.raspi-title').removeClass('hide');
 	    $('.about-sheet .remark').removeClass('hide');
