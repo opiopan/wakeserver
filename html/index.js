@@ -415,7 +415,7 @@ function transitAboutSheet(hash){
 	    setTimeout(function(){transitAboutSheet(hash);}, 700);
 	}else if (aboutSheetPhase == 3){
 	    $('.raspi-line').addClass('svg-draw');
-	    setTimeout(function(){transitAboutSheet(hash);}, 5300);
+	    setTimeout(function(){transitAboutSheet(hash);}, 6300);
 	}else if (aboutSheetPhase == 4){
 	    $('.raspi-image').removeClass('hide');
 	    setTimeout(function(){transitAboutSheet(hash);}, 1200);
