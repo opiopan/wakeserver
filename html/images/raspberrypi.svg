@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0, 0, 477, 221">
-  <defs>
-    <clipPath id="Clip_1">
-      <path d="M0,0 L477,0 L477,221 L0,221 z"/>
-    </clipPath>
-  </defs>
   <g id="base">
     <path d="M454.215,134.836 C454.085,137.967 453.499,138.079 450.26,139.724 C445.329,142.898 282.538,208.047 282.358,208.115 C272.24,211.928 269.223,212.167 261.29,209.061 C226.452,193.702 191.739,178.056 157.002,162.469" fill-opacity="0" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round"/>
     <path d="M150.956,159.756 C104.585,138.948 58.227,118.112 11.871,97.273 C11.871,97.273 11.907,93.907 11.907,91.655 C11.907,89.404 12.913,87.584 16.078,86.755 C35.699,80.611 55.317,74.454 74.935,68.3" fill-opacity="0" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round"/>
