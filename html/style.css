@@ -389,7 +389,7 @@ header .error-logo:before {
 
 .svg-draw path {
   stroke-dashoffset: 0 !important;
-  transition: stroke-dashoffset 8s ease;
+  transition: stroke-dashoffset 5s ease;
 }
 
 .about-sheet .hide {
