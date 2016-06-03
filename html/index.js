@@ -369,8 +369,6 @@ function initSvgAnimation(node){
 //---------------------------------------------------
 // about sheet
 //---------------------------------------------------
-var aboutSheetPhase = 0;
-
 function resetAboutSheet(){
     (function($) {
 	$('.about-sheet').removeClass('about-sheet-show');
@@ -382,14 +380,13 @@ function showAboutSheet(){
 	$('.about-sheet .hidable').addClass('hide');
 	$('.about-sheet .svg-animate').removeClass('svg-draw');
 	$('.about-sheet').addClass('about-sheet-show');
-	aboutSheetPhase = 0;
 	transitAboutSheet();
     })(jQuery);
 }
 
 var aboutSheetTransitionCount = 0;
 
-function transitAboutSheet(hash){
+function transitAboutSheet(hash, phase){
     (function($) {
         if (hash && hash != aboutSheetTransitionCount){
 	    return;
@@ -398,22 +395,26 @@ function transitAboutSheet(hash){
 	    return;
 	}
 	
-	aboutSheetPhase++;
+	if (!phase){
+	    phase = 0;
+	}
+
+	phase++;
 	
-	if (aboutSheetPhase == 1){
+	if (phase == 1){
             aboutSheetTransitionCount++;
             hash = aboutSheetTransitionCount;
-	    setTimeout(function(){transitAboutSheet(hash);}, 800);
-	}else if (aboutSheetPhase == 2){
+	    setTimeout(function(){transitAboutSheet(hash, phase);}, 800);
+	}else if (phase == 2){
 	    $('.about-sheet .title').removeClass('hide');
-	    setTimeout(function(){transitAboutSheet(hash);}, 700);
-	}else if (aboutSheetPhase == 3){
+	    setTimeout(function(){transitAboutSheet(hash, phase);}, 700);
+	}else if (phase == 3){
 	    $('.raspi-line').addClass('svg-draw');
-	    setTimeout(function(){transitAboutSheet(hash);}, 6300);
-	}else if (aboutSheetPhase == 4){
+	    setTimeout(function(){transitAboutSheet(hash, phase);}, 6300);
+	}else if (phase == 4){
 	    $('.raspi-image').removeClass('hide');
-	    setTimeout(function(){transitAboutSheet(hash);}, 1200);
-	}else if (aboutSheetPhase == 5){
+	    setTimeout(function(){transitAboutSheet(hash, phase);}, 1200);
+	}else if (phase == 5){
 	    $('.raspi-title').removeClass('hide');
 	    $('.about-sheet .remark').removeClass('hide');
 	}	
