@@ -357,12 +357,6 @@ function initSvgAnimation(node){
 
     var currentLength = 0;
     for (i = 0; i < paths.length; i++){
-	/*
-	var length = paths[i].length + 3;
-	paths[i].node.style.strokeDasharray = length + ' ' + length;
-	paths[i].node.style.strokeDashoffset = length;
-	*/
-
 	paths[i].node.style.strokeDasharray = 
 	    (totalLength - currentLength) + ' ' + 
 	    (totalLength + currentLength);

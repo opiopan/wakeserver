@@ -385,6 +385,8 @@ header .error-logo:before {
 
 .svg-animate path {
   transition: stroke-dashoffset 0s;
+  stroke: #FFFFFF;
+  stroke-width: 1pt;
 }
 
 .svg-draw path {
