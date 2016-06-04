@@ -21,6 +21,14 @@ var defaults = {
 	    for (var i in json) {
 		var $node = $template.clone(true);
 		$node.attr('id', json[i].name);
+		var wakable = json[i].scheme.on;
+		var sleepable = json[i].scheme.off;
+		if (wakable){
+		    $node.addClass('wakable');
+		}
+		if (sleepable){
+		    $node.addClass('sleepable');
+		}
 
 		var $description = $node.find('.description')
 		$('<h1/>').appendTo($description).append(json[i].name);
@@ -55,7 +63,9 @@ var defaults = {
 	    var $indicator = $(this).find('.on-indicator');
 	    var offState = $indicator.hasClass('off-state');
 	    var transitToOn = $indicator.hasClass('transit-to-on');
-	    if (offState && !transitToOn){
+	    var wakable = $(this).hasClass('wakable');
+	    var sleepable = $(this).hasClass('sleepable');
+	    if (offState && !transitToOn && wakable){
 		var message = 
 		    "Are you sure to wake up a server '" + this.id + "' ?";
 		var param = {
@@ -83,7 +93,7 @@ var defaults = {
 			}
 		    }, TRANSITION_TIMEOUT);
 		});
-	    }else if (!offState && !transitToOn){
+	    }else if (!offState && !transitToOn && sleepable){
 		var message = 
 		    "Are you sure to stop a server '" + this.id + "' ?";
 		var param = {
