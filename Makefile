@@ -6,6 +6,7 @@ SERVERS_DIR		= /var/www/wakeserver
 HTML_DIR		= /var/www/wakeserver/html
 CGI_DIR			= /usr/lib/cgi-bin
 SBIN_DIR		= /var/www/wakeserver/sbin
+PLUGIN_DIR		= /var/www/wakeserver/plugin
 DAEMON_DIR		= /var/www/wakeserver/daemon
 DAEMON			= $(DAEMON_DIR)/wakeserverd
 SERVICE_CONF		= /etc/systemd/system/wakeserver.service
@@ -22,6 +23,10 @@ CGIENABLING		= '^<Directory \/var\/www\/>' Options \
 
 CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
 			  wakeserver-sleep.cgi
+PLUGINS			= cannon-printer
+
+COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
+			  $(PLUGIN_DIR)
 
 all:
 
@@ -35,12 +40,15 @@ daemonrestart: $(DAEMON) $(SERVICE_CONF)
 	systemctl enable wakeserver.service || exit 1
 	systemctl restart wakeserver.service || exit 1
 
-copyfiles: $(SITE_CONF_DIR) $(HTML_DIR) $(WAKEONLAN) daemon $(SBIN_DIR) commands
+copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 	cp apache-conf/wakeserver.conf $(SITE_CONF_DIR) || exit 1
 	cp conf/servers.conf $(SERVERS_DIR) || exit 1
 	cp -R html/* $(HTML_DIR) || exit 1
 	for f in $(CGIS);do \
 	    $(INSTALL) -m755 cgi-bin/$$f $(CGI_DIR)/$$f || exit 1; \
+	done
+	for f in $(PLUGINS);do \
+	    $(INSTALL) -m755 plugin/$$f $(PLUGIN_DIR)/$$f || exit1; \
 	done
 	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
 
@@ -55,13 +63,10 @@ daemon: $(DAEMON) $(SERVICE_CONF)
 $(DAEMON): daemon/wakeserverd $(DAEMON_DIR)
 	$(INSTALL) -m755 $< $@
 
-$(DAEMON_DIR):
-	$(INSTALL) -d $@
-
 $(SERVICE_CONF): daemon/wakeserver.service
 	$(INSTALL) $< $@
 
-$(HTML_DIR):
+$(HTML_DIR) $(DAEMON_DIR) $(PLUGIN_DIR):
 	$(INSTALL) -d $@
 
 apache2config: $(SITE_CONF_DIR)
