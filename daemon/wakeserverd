@@ -4,36 +4,81 @@ import os
 import sys
 import time
 import json
+import threading
 
-CONF =        "/var/www/wakeserver/servers.conf"
-PIDFILE =     "/run/wakeserverd.pid"
-STATUS_DIR =  "/run/wakeserver"
-STATUS_FILE = "/run/wakeserver/status"
+CONF =            "/var/www/wakeserver/servers.conf"
+PIDFILE =         "/run/wakeserverd.pid"
+STATUS_DIR =      "/run/wakeserver"
+STATUS_FILE =     "/run/wakeserver/status"
 STATUS_FILE_NEW = "/run/wakeserver/status.new"
-INTERVAL =    1
+ERROR_FILE =      "/run/wakeserver/error"
+PLUGIN_DIR =      "/var/www/wakeserver"
+INTERVAL =        1
+INTERVAL_WRITE =  2
+
+def diagServers(servers, targets, interval):
+    while True:
+        for i in targets:
+            server = servers[i]
+            diag = server["scheme"]["diag"]
+            cmd = ""
+            if diag == "ping":
+                cmd = "ping -c1 -W%d %s >/dev/null" % \
+                    (interval, server["ipaddr"])
+            elif diag == "custom":
+                cmd = "%s/%s '%s' '%s' %d" % \
+                    (PLUGIN_DIR, 
+                     server["scheme"]["type"], 
+                     server["ipaddr"], server["macaddr"],
+                     interval)
+
+            if cmd != "":
+                if os.system(cmd) == 0 :
+                    server["status"] = "on"
+                    time.sleep(interval)
+                else:
+                    server["status"] = "off"
 
 class Daemon :
     def __init__(self):
         with open(CONF) as f:
             self.servers = json.load(f)
-        for server in self.servers:
+
+        self.operativeServers = []
+        self.normalServers = []
+        for i in range(0, len(self.servers)):
+            server = self.servers[i]
             if "user" in server["scheme"]:
                 del server["scheme"]["user"]
-            server["status"] = "off"
+            if "diag" in server["scheme"]:
+                diag = server["scheme"]["diag"]
+                if diag == "normallyoff":
+                    server["status"] = "off"
+                elif diag == "alwayson":
+                    server["status"] = "on"
+                else:
+                    server["status"] = "off"
+                    if "on" in server["scheme"] or \
+                       "off" in server["scheme"]:
+                        self.operativeServers.append(i)
+                    else:
+                        self.normalServers.append(i)
         if not os.path.isdir(STATUS_DIR):
             os.mkdir(STATUS_DIR)
         with open(STATUS_FILE, "w") as f:
             json.dump(self.servers, f)
+        self.hfThread = threading.Thread(
+            target=diagServers, name="th_hf", 
+            args=(self.servers, self.operativeServers, INTERVAL))
+        self.nmThread = threading.Thread(
+            target=diagServers, name="th_nm",
+            args=(self.servers, self.normalServers, INTERVAL))
+        self.hfThread.start()
+        self.nmThread.start()
 
     def run(self):
         while True:
-            for server in self.servers:
-                cmd = "ping -c1 -W%d %s" % (INTERVAL, server["ipaddr"])
-                if os.system(cmd) == 0 :
-                    server["status"] = "on"
-                    time.sleep(INTERVAL)
-                else:
-                    server["status"] = "off"
+            time.sleep(INTERVAL_WRITE)
             with open(STATUS_FILE_NEW, "w") as f:
                 json.dump(self.servers, f)
             os.rename(STATUS_FILE_NEW, STATUS_FILE)
@@ -59,7 +104,7 @@ def daemonize(nochdir, noclose):
         sys.stderr.close()
         sys.stdin = open("/dev/null", "r")
         sys.stdout = open("/dev/null", "w")
-        sys.stderr = open("/dev/null", "w")
+        sys.stderr = open(ERROR_FILE, "w")
 
 
     with open(PIDFILE, "w") as f :

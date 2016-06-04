@@ -476,7 +476,6 @@ header .error-logo #symbol path {
 
 .on-indicator {
   background-color: rgb(81, 221, 73);
-  z-index: 5;
   transition: .3s linear;
 }
 
