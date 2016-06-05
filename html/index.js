@@ -16,36 +16,39 @@ var defaults = {
 	//---------------------------------------------------
 	var $template = $('#server-entry-template .server-entry');
 
-	$.get('cgi-bin/wakeserver-get.cgi', '', function(text){
+	$.get('cgi-bin/wakeserver-get.cgi', {"type": "full"}, function(text){
 	    var json = JSON.parse(text);
-	    for (var i in json) {
-		var $node = $template.clone(true);
-		$node.attr('id', json[i].name);
-		var wakable = json[i].scheme.on;
-		var sleepable = json[i].scheme.off;
-		if (wakable){
-		    $node.addClass('wakable');
+	    $.get('cgi-bin/wakeserver-get.cgi', '', function(text){
+		var statuses = JSON.parse(text);
+		for (var i in json) {
+		    var $node = $template.clone(true);
+		    $node.attr('id', json[i].name);
+		    var wakable = json[i].scheme.on;
+		    var sleepable = json[i].scheme.off;
+		    if (wakable){
+			$node.addClass('wakable');
+		    }
+		    if (sleepable){
+			$node.addClass('sleepable');
+		    }
+
+		    var $description = $node.find('.description')
+		    $('<h1/>').appendTo($description).append(json[i].name);
+		    $('<p/>').appendTo($description).append(json[i].comment);
+		    $('<p/>').appendTo($description)
+			.append('IP: ' + json[i].ipaddr);
+		    $('<p/>').appendTo($description)
+			.append('MAC: ' + json[i].macaddr);
+
+		    $node.find('.icon span').css({
+			'background-image': "url('" + json[i].icon + "')"
+		    });
+
+		    applyServerState($node, statuses[i]);
+
+		    $('.server-list').append($node);
 		}
-		if (sleepable){
-		    $node.addClass('sleepable');
-		}
-
-		var $description = $node.find('.description')
-		$('<h1/>').appendTo($description).append(json[i].name);
-		$('<p/>').appendTo($description).append(json[i].comment);
-		$('<p/>').appendTo($description)
-		    .append('IP: ' + json[i].ipaddr);
-		$('<p/>').appendTo($description)
-		    .append('MAC: ' + json[i].macaddr);
-
-		$node.find('.icon span').css({
-		    'background-image': "url('" + json[i].icon + "')"
-		});
-
-		applyServerState($node, json[i]);
-
-		$('.server-list').append($node);
-	    }
+	    });
 	});
 
 	setTimeout("updateServerState()", UPDATE_INTERVAL);

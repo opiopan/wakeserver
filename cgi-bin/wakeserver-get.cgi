@@ -1,8 +1,10 @@
 #!/bin/sh
 
-cat << EOF
-Content-type: text/javascript; charset=utf-8
+echo Content-type: text/javascript; charset=utf-8
+echo
 
-EOF
-
-cat /run/wakeserver/status
+if [ "$QUERY_STRING" = "type=full" ];then
+    cat /run/wakeserver/status.full
+else
+    cat /run/wakeserver/status
+fi
