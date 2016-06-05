@@ -79,7 +79,7 @@ def diagServers(servers, statuses, targets, interval):
                 cmd = "ping -c1 -W%d %s >/dev/null" % \
                     (interval, server["ipaddr"])
             elif diag == "custom":
-                cmd = "%s/%s '%s' '%s' %d" % \
+                cmd = "%s/%s diag '%s' '%s' %d" % \
                     (PLUGIN_DIR, 
                      server["scheme"]["type"], 
                      server["ipaddr"], server["macaddr"],

@@ -1,17 +1,25 @@
 #!/bin/sh
 
-IPADDR="$1"
-MACADDR="$2"
-INTERVAL="$3"
+COMMAND="$1"
+IPADDR="$2"
+MACADDR="$3"
+INTERVAL="$4"
 
-if ping -c1 -W"$INTERVAL" "$IPADDR" >/dev/null;then
-    sleep "$INTERVAL"
-    if wget --quiet -O - "http://$IPADDR/index.html" | \
-	grep 'Operate after turning the power on' >/dev/null;then
+case "$COMMAND" in
+    diag)
+	if ping -c1 -W"$INTERVAL" "$IPADDR" >/dev/null;then
+	    sleep "$INTERVAL"
+	    if wget --quiet -O - "http://$IPADDR/index.html" | \
+		grep 'Operate after turning the power on' >/dev/null;then
+		exit 1
+	    else
+		exit 0
+	    fi
+	else
+	    exit 1
+	fi
+	;;
+    on | off | *)
 	exit 1
-    else
-	exit 0
-    fi
-else
-    exit 1
-fi
+	;;
+esac
