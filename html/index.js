@@ -8,6 +8,8 @@ var defaults = {
     "confirm-shut-down": 'true'
 };
 
+var serverList = null;
+
 (function($) {
     $(document).ready(function(){
 
@@ -18,11 +20,15 @@ var defaults = {
 
 	$.get('cgi-bin/wakeserver-get.cgi', {"type": "full"}, function(text){
 	    var json = JSON.parse(text);
+	    serverList = json;
 	    $.get('cgi-bin/wakeserver-get.cgi', '', function(text){
 		var statuses = JSON.parse(text);
 		for (var i in json) {
 		    var $node = $template.clone(true);
-		    $node.attr('id', json[i].name);
+		    $node.attr({
+			'id': json[i].name,
+			'server-index': i
+		    });
 		    var wakable = json[i].scheme.on;
 		    var sleepable = json[i].scheme.off;
 		    if (wakable){
@@ -68,79 +74,11 @@ var defaults = {
 	    var transitToOn = $indicator.hasClass('transit-to-on');
 	    var wakable = $(this).hasClass('wakable');
 	    var sleepable = $(this).hasClass('sleepable');
-	    if (offState && !transitToOn && wakable){
-		var message = 
-		    "Are you sure to wake up a server '" + this.id + "' ?";
-		var param = {
-		    title: "Wake up a Server",
-		    message: message,
-		    buttons: YesNoDialog,
-		    definitive: configValue('confirm-wake-up') != 'true',
-		    definitiveValue: "Yes"
-		};
-		var target = this.id;
-		popupDialog(param, function(result){
-		    if (result != 'Yes') return;
-		    
-		    var url = 'cgi-bin/wakeserver-wake.cgi';
-		    var param = {"target" : target};
-		    $.post(url, param, function(data) {
-			var foo = data;
-		    });
-		    var counter = transitCount++;
-		    $indicator.attr('transit-counter', counter);
-		    $indicator.addClass('transit-to-on');
-		    setTimeout(function(){
-			if ($indicator.attr('transit-counter') == counter){
-			    $indicator.removeClass('transit-to-on');
-			}
-		    }, TRANSITION_TIMEOUT);
-		});
-	    }else if (!offState && !transitToOn && sleepable){
-		var message = 
-		    "Are you sure to stop a server '" + this.id + "' ?";
-		var param = {
-		    title: "Stop a Server",
-		    message: message,
-		    buttons: YesNoDialog,
-		    definitive: configValue('confirm-shut-down') != 'true',
-		    definitiveValue: "Yes"
-		};
-		var target = this.id;
-		popupDialog(param, function(result){
-		    if (result != 'Yes') return;
-
-		    $.ajax({
-		        type: "POST",
-			url: 'cgi-bin/wakeserver-sleep.cgi',
-			data: {"target" : target},
-			scriptCharset: 'utf-8',
-			dataType:'json',
-			success: function(result) {
-			    if (!result.result){
-				var param = {
-				title: "Fail to stop a server",
-				message: result.message,
-				buttons: OkDialog,
-				definitive: false,
-				definitiveValue: false
-				};
-				popupDialog(param);
-				$indicator.removeClass('transit-to-on');
-			    }
-			}
-		    });
-
-		    var counter = transitCount++;
-		    $indicator.attr('transit-counter', counter);
-		    $indicator.addClass('transit-to-on');
-		    setTimeout(function(){
-			if ($indicator.attr('transit-counter') == counter){
-			    $indicator.removeClass('transit-to-on');
-			}
-		    }, TRANSITION_TIMEOUT);
-		});
-	    }
+	    
+	    showDashboard(
+		serverList[$(this).attr('server-index')],
+		$indicator,
+		!offState, transitToOn);
 	});
 
 	//---------------------------------------------------
@@ -163,7 +101,7 @@ var defaults = {
 	    }
 	});
 
-	$(document).on('click', '.modal', function(){
+	$('.modal').on('click', function(){
 	    var $modal = $('.modal');
 	    $close.removeClass('menu-open');
 	    $modal.removeClass('modal-inactive');
@@ -202,6 +140,8 @@ var defaults = {
 		}; 
 	    });
 	});
+
+	initSVGLibrary();
 
 	//---------------------------------------------------
 	// reset about sheet
@@ -432,4 +372,244 @@ function transitAboutSheet(hash, phase){
 	    $('.about-sheet .remark').removeClass('hide');
 	}	
     })(jQuery);
+}
+
+//---------------------------------------------------
+// dashboard
+//---------------------------------------------------
+var dashboardMenuConf = {
+    "webui": {
+	"text": "Web UI",
+	"icon": "webui",
+	"prefix": "http"
+    },
+    "ssh": {
+	"text": "SSH Console",
+	"icon": "ssh",
+	"prefix": "ssh"
+    },
+    "vnc": {
+	"text": "Remote Screen",
+	"icon": "vnc",
+	"prefix": "vnc"
+    },
+    "config-app": {
+	"text": "Configuration App",
+	"icon": "config",
+	"prefix": "http"
+    }
+};
+
+function showDashboard(server, $indicator, isRunning, isInTransition){
+    (function($) {
+	var scheme = server["scheme"];
+	var services = scheme["services"];
+	var $menues = $('#dashboard #dashboard-menu').empty();
+
+	if (!isRunning && !isInTransition && scheme.on){
+	    var $icon = $('<div></div>').attr({
+		"class": "icon"
+	    }).append(svgInLib('power'));
+	    $('<div>Wake up a server</div>').appendTo($menues).attr({
+		"class": "dmenu-item"
+	    }).on('click', function(){
+		wakeupServer(server.name, $indicator, function(){
+		});
+		closeDashboard();
+	    }).prepend($icon);
+	}else if (isRunning && !isInTransition && scheme.off){
+	    var $icon = $('<div></div>').attr({
+		"class": "icon"
+	    }).append(svgInLib('power'));
+	    $('<div>Stop a server</div>').appendTo($menues).attr({
+		"class": "dmenu-item"
+	    }).on('click', function(){
+		sleepServer(server.name, $indicator, function(){
+		});
+		closeDashboard();
+	    }).prepend($icon);
+	}
+
+	for (var i in services){
+	    (function(){
+		var service = services[i];
+		var config = dashboardMenuConf[service.type];
+		if (isRunning || service.enable == "always"){
+		    var $icon = $('<div></div>').attr({
+			"class": "icon"
+		    }).append(svgInLib(config.icon));
+		    $('<div>' + config.text + '</div>').appendTo($menues).
+			attr({
+			    "class": "dmenu-item"
+			}).on('click', function(){
+			    var scheme = service.prefix ? 
+				service.prefix : config.prefix;
+			    var suffix = service.suffix ?
+				service.suffix : "";
+			    var url = 
+				scheme + "://" + server.ipaddr + "/" + suffix;
+			    
+			    window.open(url);
+			    closeDashboard();
+			}).prepend($icon);
+		}
+	    })();
+	}
+	
+	var items = $menues.find('.dmenu-item');
+	if (items.length > 0){
+	    $('#dashboard .server').empty().append(server.name);
+	    $('#dashboard .dashboard-icon').css({
+		'background-image': "url('" + server.icon + "')"
+	    });
+	    var $dashboard = $('#dashboard');
+	    $dashboard.on('click', '#dashboard-cancel', function(){
+		closeDashboard();
+	    });
+	    /*
+	    var $from = $('.server-list #' + 
+		      escapeSelectorString(server.name) + 
+		      ' .icon');
+	    $('#dashboard-main').offset({
+		top: $from.offset().top + $from.height(),
+		left: $from.offset().left + $from.width()
+	    });
+	    */
+	    $dashboard.addClass('modal-active');
+	}
+	
+    })(jQuery);
+}
+
+function closeDashboard(){
+    (function($) {
+	$('#dashboard').removeClass('modal-active')
+    })(jQuery);
+}
+
+//---------------------------------------------------
+// wake up & sleep requestor
+//---------------------------------------------------
+function wakeupServer(server, $indicator, callback){
+    (function($) {
+	var message = "Are you sure to wake up a server '" + server + "' ?";
+	var param = {
+	    title: "Wake up a Server",
+	    message: message,
+	    buttons: YesNoDialog,
+	    definitive: configValue('confirm-wake-up') != 'true',
+	    definitiveValue: "Yes"
+	};
+	popupDialog(param, function(result){
+	    if (result != 'Yes'){
+		callback();
+		return;
+	    }
+	    
+	    var url = 'cgi-bin/wakeserver-wake.cgi';
+	    var param = {"target" : server};
+	    $.post(url, param, function(data) {
+		var foo = data;
+	    });
+	    var counter = transitCount++;
+	    $indicator.attr('transit-counter', counter);
+	    $indicator.addClass('transit-to-on');
+	    setTimeout(function(){
+		if ($indicator.attr('transit-counter') == counter){
+		    $indicator.removeClass('transit-to-on');
+		}
+	    }, TRANSITION_TIMEOUT);
+	    callback();
+	});
+    })(jQuery);
+}
+
+function sleepServer(serverName, $indicator, callback){
+    (function($) {
+	var message = "Are you sure to stop a server '" + serverName + "' ?";
+	var param = {
+	    title: "Stop a Server",
+	    message: message,
+	    buttons: YesNoDialog,
+	    definitive: configValue('confirm-shut-down') != 'true',
+	    definitiveValue: "Yes"
+	};
+	popupDialog(param, function(result){
+	    if (result != 'Yes'){
+		callback();
+		return;
+	    }
+	    
+	    $.ajax({
+		type: "POST",
+		url: 'cgi-bin/wakeserver-sleep.cgi',
+		data: {"target" : serverName},
+		scriptCharset: 'utf-8',
+		dataType:'json',
+		success: function(result) {
+		    if (!result.result){
+			var param = {
+			    title: "Fail to stop a server",
+			    message: result.message,
+			    buttons: OkDialog,
+			    definitive: false,
+			    definitiveValue: false
+			};
+			popupDialog(param);
+			$indicator.removeClass('transit-to-on');
+		    }
+		}
+	    });
+	    
+	    var counter = transitCount++;
+	    $indicator.attr('transit-counter', counter);
+	    $indicator.addClass('transit-to-on');
+	    setTimeout(function(){
+		if ($indicator.attr('transit-counter') == counter){
+		    $indicator.removeClass('transit-to-on');
+		}
+	    }, TRANSITION_TIMEOUT);
+
+	    callback();
+	});
+    })(jQuery);
+}
+
+
+//---------------------------------------------------
+// SVG libraly
+//---------------------------------------------------
+var $svgLibrary
+
+function initSVGLibrary(){
+    (function($) {
+	$.ajax({
+            url: 'images/svglib.xml',
+            type: 'get',
+            dataType: 'xml',
+            timeout: 1000,
+            success: function(xml){
+		$svgLibrary = $(xml);
+	    },
+	    error: function(){
+		var foo;
+	    }
+	});  
+    })(jQuery);
+}
+
+function svgInLib(name){
+    var $svg;
+    (function($) {
+	var selector = 'svg#'+escapeSelectorString(name);
+	$svg = $svgLibrary.find(selector).clone();
+    })(jQuery);
+    return $svg;
+}
+
+//---------------------------------------------------
+// Utilities
+//---------------------------------------------------
+function escapeSelectorString(val){
+    return val.replace(/[ !"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~]/g, "\\$&");
 }
