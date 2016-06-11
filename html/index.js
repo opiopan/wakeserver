@@ -379,7 +379,7 @@ function transitAboutSheet(hash, phase){
 //---------------------------------------------------
 var dashboardMenuConf = {
     "webui": {
-	"text": "Web UI",
+	"text": "Web Interface",
 	"icon": "webui",
 	"prefix": "http"
     },
@@ -459,6 +459,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	var items = $menues.find('.dmenu-item');
 	if (items.length > 0){
 	    $('#dashboard .server').empty().append(server.name);
+	    $('#dashboard .comment').empty().append(server.comment);
 	    $('#dashboard .dashboard-icon').css({
 		'background-image': "url('" + server.icon + "')"
 	    });

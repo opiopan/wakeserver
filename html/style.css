@@ -654,7 +654,7 @@ header .error-logo #symbol path {
 }
 
 .dialog-frame:not(:first-child) {
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
 .modal-active .dialog-frame { 
@@ -711,14 +711,25 @@ header .error-logo #symbol path {
   font-weight: 500;
 }
 
+/* for small screen device */
+@media screen and (max-width: 767px) {
+  .dialog-frame:not(:first-child) {
+    margin-top: 10px;
+  }
+}
+
 /*------------------------------------------------------------
  Dashboard dialog
 ------------------------------------------------------------*/
+#dashboard .dialog-frame {
+  width: 500px;
+}
+
 #dashboard .title {
   display: block;
   position: relative;
   width: 100%;
-  height: 60px;
+  height: 150px;
   padding: 0;
   margin: 0;
   vertical-align:middle;
@@ -727,31 +738,41 @@ header .error-logo #symbol path {
 .dashboard-icon {
   display: inline-block;
   position: relative;
-  width: 40px;
-  height: 40px;
-  top: calc(50% - 20px);
+  width: 120px;
+  height: 120px;
+  top: calc(50% - 60px);
   background-position: center center;
   background-repeat: no-repeat;
   background-size: contain;
 }
 
-#dashboard .server {
+#dashboard .title-text {
   display: inline-block;
   position: relative;
   margin: 0;
   padding: 0;
   margin-left: 0.5em;
-  font-size: 12pt;
-  top: calc(-50% + 0.5em);
+  font-size: 24pt;
+  top: calc(-60px + 1.35em);
+  text-align: left;
+}
+
+#dashboard .title-text .comment {
+  font-family: sans-serif;
+  font-size: 0.58em;
+  font-weight: 200;
+  padding-top: 0.2em;
+  color: #707070;
 }
 
 .dmenu-item {
   display: block;
   box-sizing: border-box;
   font-family: sans-serif;
-  font-size: 14pt;
+  font-size: 22pt;
   width: 100%;
   padding: 12px;
+  padding-bottom: 24px;
   text-align: center;
   border-top: #c0c0c0 1px solid;
   cursor: pointer;
@@ -767,11 +788,13 @@ header .error-logo #symbol path {
   position: relative;
   width: 40px;
   height: 40px;
-  margin-right: 8px;
+  margin-right: 20px;
+  top: 0.35em;
 }
 
 #dashboard-cancel {
   border-top: none;
+  padding: 18px;
   font-weight: bold;
   color: #0B61FF;
   cursor: pointer;
@@ -781,15 +804,16 @@ header .error-logo #symbol path {
 @media screen and (max-width: 767px) {
   #dashboard .dialog-frame {
     width: 90%;
+    max-width: 310px;
   }
 
   #dashboard .title {
     height: 100px;
   }
 
-  #dashboard .server {
+  #dashboard .title-text {
     font-size: 17pt;
-    top: calc(-40px + 0.5em);
+    top: calc(-40px + 1.35em);
   }
 
   .dashboard-icon {
@@ -811,7 +835,7 @@ header .error-logo #symbol path {
   }
 
   #dashboard-cancel {
-    padding-top: 15px;
+    padding: 12px;
   }
 
   .dmenu-item .icon {
