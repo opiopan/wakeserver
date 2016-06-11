@@ -445,21 +445,21 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 		var service = services[i];
 		var config = dashboardMenuConf[service.type];
 		if (isRunning || service.enable == "always"){
+		    var scheme = service.prefix ? 
+			service.prefix : config.prefix;
+		    var suffix = service.suffix ?
+			service.suffix : "";
+		    var url = 
+			scheme + "://" + server.ipaddr + "/" + suffix;
 		    var $icon = $('<div></div>').attr({
 			"class": "icon"
 		    }).append(svgInLib(config.icon));
-		    $('<div>' + config.text + '</div>').appendTo($menues).
+		    $('<a>' + config.text + '</a>').appendTo($menues).
 			attr({
-			    "class": "dmenu-item"
+			    "class": "dmenu-item",
+			    "href": url,
+			    "target": "_blank"
 			}).on('click', function(){
-			    var scheme = service.prefix ? 
-				service.prefix : config.prefix;
-			    var suffix = service.suffix ?
-				service.suffix : "";
-			    var url = 
-				scheme + "://" + server.ipaddr + "/" + suffix;
-			    
-			    window.open(url);
 			    closeDashboard();
 			}).prepend($icon);
 		}
