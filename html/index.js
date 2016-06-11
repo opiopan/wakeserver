@@ -397,6 +397,16 @@ var dashboardMenuConf = {
 	"text": "Configuration App",
 	"icon": "config",
 	"prefix": "http"
+    },
+    "smb": {
+	"text": "CIFS sharing",
+	"icon": "folder",
+	"prefix": "smb"
+    },
+    "afp": {
+	"text": "AFP sharing",
+	"icon": "folder",
+	"prefix": "afp"
     }
 };
 
