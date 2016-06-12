@@ -49,8 +49,6 @@ class Daemon :
                 self.statuses.append({"status": server["status"]})
                 i = i + 1
 
-        if not os.path.isdir(STATUS_DIR):
-            os.mkdir(STATUS_DIR)
         with open(STATUS_FILE_FULL, "w") as f1, open(STATUS_FILE, "w") as f2:
             json.dump(self.conf, f1)
             json.dump(self.statuses, f2)
@@ -114,6 +112,8 @@ def daemonize(nochdir, noclose):
     if not nochdir:
         os.chdir("/")
 
+    if not os.path.isdir(STATUS_DIR):
+        os.mkdir(STATUS_DIR)
     if not noclose:
         sys.stdin.close()
         sys.stdout.close()
