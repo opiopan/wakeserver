@@ -20,34 +20,39 @@ INTERVAL_WRITE =   2
 class Daemon :
     def __init__(self):
         with open(CONF) as f:
-            self.servers = json.load(f)
+            self.conf = json.load(f)
+        self.servers = []
         self.statuses = []
         self.operativeServers = []
         self.normalServers = []
 
-        for i in range(0, len(self.servers)):
-            server = self.servers[i]
-            if "user" in server["scheme"]:
-                del server["scheme"]["user"]
-            if "diag" in server["scheme"]:
-                diag = server["scheme"]["diag"]
-                if diag == "normallyoff":
-                    server["status"] = "off"
-                elif diag == "alwayson":
-                    server["status"] = "on"
-                else:
-                    server["status"] = "off"
-                    if "on" in server["scheme"] or \
-                       "off" in server["scheme"]:
-                        self.operativeServers.append(i)
+        i = 0
+        for group in self.conf:
+            servers = group["servers"];
+            for server in servers:
+                self.servers.append(server)
+                if "user" in server["scheme"]:
+                    del server["scheme"]["user"]
+                if "diag" in server["scheme"]:
+                    diag = server["scheme"]["diag"]
+                    if diag == "normallyoff":
+                        server["status"] = "off"
+                    elif diag == "alwayson":
+                        server["status"] = "on"
                     else:
-                        self.normalServers.append(i)
-            self.statuses.append({"status": server["status"]})
+                        server["status"] = "off"
+                        if "on" in server["scheme"] or \
+                                "off" in server["scheme"]:
+                            self.operativeServers.append(i)
+                        else:
+                            self.normalServers.append(i)
+                self.statuses.append({"status": server["status"]})
+                i = i + 1
 
         if not os.path.isdir(STATUS_DIR):
             os.mkdir(STATUS_DIR)
         with open(STATUS_FILE_FULL, "w") as f1, open(STATUS_FILE, "w") as f2:
-            json.dump(self.servers, f1)
+            json.dump(self.conf, f1)
             json.dump(self.statuses, f2)
 
         self.hfThread = threading.Thread(

@@ -26,13 +26,14 @@ if target != "":
    l.write(target + "\n")
 
    f = open(SERVERS)
-   servers = json.load(f)
+   groups = json.load(f)
 
    l.write("json tranlated\n")
    
-   for server in servers:
-       if server["name"] == target:
-           os.system("/usr/bin/wakeonlan " + server["macaddr"])
+   for group in groups:
+       for server in group["servers"]:
+           if server["name"] == target:
+               os.system("/usr/bin/wakeonlan " + server["macaddr"])
 
    l.close()
    f.close()

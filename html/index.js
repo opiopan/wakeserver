@@ -8,52 +8,84 @@ var defaults = {
     "confirm-shut-down": 'true'
 };
 
-var serverList = null;
+var clickEvent="click";
+
+var serverList = [];
 
 (function($) {
     $(document).ready(function(){
-
+	
 	//---------------------------------------------------
 	// main contents creation & update
 	//---------------------------------------------------
 	var $template = $('#server-entry-template .server-entry');
 
 	$.get('cgi-bin/wakeserver-get.cgi', {"type": "full"}, function(text){
-	    var json = JSON.parse(text);
-	    serverList = json;
+	    var definitions = ServerDefinitionList(text);
 	    $.get('cgi-bin/wakeserver-get.cgi', '', function(text){
 		var statuses = JSON.parse(text);
-		for (var i in json) {
-		    var $node = $template.clone(true);
-		    $node.attr({
-			'id': json[i].name,
-			'server-index': i
-		    });
-		    var wakable = json[i].scheme.on;
-		    var sleepable = json[i].scheme.off;
-		    if (wakable){
-			$node.addClass('wakable');
+		var $placeholder = $('.server-list');
+		var currentGroup;
+		definitions.foreach(function (entry) {
+		    if (entry.groupName){
+			var group = entry
+			currentGroup = group;
+			var $node = 
+			    $('<div>' + entry.groupName + '</div>').attr(
+				"class", "server-group",
+				"groupid", entry.groupid
+			    ).on(clickEvent, function(){
+				var selector = 
+				    '.server-entry[groupid = ' +
+				    group.groupid + ']';
+				var target = $(selector);
+				$(selector).toggleClass('fold');
+				$(this).toggleClass('fold');
+			    });
+			if (group.initial != 'open'){
+			    $node.addClass('fold');
+			}
+			$placeholder.append($node);
+		    }else{
+			var server = entry;
+			serverList.push(server);
+			var $node = $template.clone(true);
+			$node.attr({
+			    'id': server.name,
+			    'server-index': serverList.length - 1,
+			    'groupid': server.groupid
+			});
+			if (currentGroup && currentGroup.initial != 'open'){
+			    $node.addClass('fold');
+			}
+			var wakable = server.scheme.on;
+			var sleepable = server.scheme.off;
+			if (wakable){
+			    $node.addClass('wakable');
+			}
+			if (sleepable){
+			    $node.addClass('sleepable');
+			}
+
+			var $description = $node.find('.description')
+			$('<h1/>').appendTo($description).append(server.name);
+			$('<p/>').appendTo($description).
+			    append(server.comment);
+			$('<p/>').appendTo($description)
+			    .append('IP: ' + server.ipaddr);
+			$('<p/>').appendTo($description)
+			    .append('MAC: ' + server.macaddr);
+
+			$node.find('.icon span').css({
+			    'background-image': "url('" + server.icon + "')"
+			});
+
+			applyServerState($node, 
+					 statuses[serverList.length -1]);
+
+			$placeholder.append($node);
 		    }
-		    if (sleepable){
-			$node.addClass('sleepable');
-		    }
-
-		    var $description = $node.find('.description')
-		    $('<h1/>').appendTo($description).append(json[i].name);
-		    $('<p/>').appendTo($description).append(json[i].comment);
-		    $('<p/>').appendTo($description)
-			.append('IP: ' + json[i].ipaddr);
-		    $('<p/>').appendTo($description)
-			.append('MAC: ' + json[i].macaddr);
-
-		    $node.find('.icon span').css({
-			'background-image': "url('" + json[i].icon + "')"
-		    });
-
-		    applyServerState($node, statuses[i]);
-
-		    $('.server-list').append($node);
-		}
+		});
 	    });
 	});
 
@@ -68,7 +100,7 @@ var serverList = null;
 	//---------------------------------------------------
 	// respond to click each server
 	//---------------------------------------------------
-	$(document).on('click', '.server-entry', function(){
+	$(document).on(clickEvent, '.server-entry', function(){
 	    var $indicator = $(this).find('.on-indicator');
 	    var offState = $indicator.hasClass('off-state');
 	    var transitToOn = $indicator.hasClass('transit-to-on');
@@ -86,7 +118,7 @@ var serverList = null;
 	//---------------------------------------------------
 	var $close = $();
 
-	$(document).on('click', '.menu-btn', function(){
+	$('.drawer-menu').on(clickEvent, '.menu-btn', function(){
 	    $menu = $(this).parent();
 	    $modal = $('.modal');
 	    if ($menu.hasClass('menu-open')){
@@ -101,14 +133,14 @@ var serverList = null;
 	    }
 	});
 
-	$('.modal').on('click', function(){
+	$('.modal').on(clickEvent, function(){
 	    var $modal = $('.modal');
 	    $close.removeClass('menu-open');
 	    $modal.removeClass('modal-inactive');
 	    $close = $();
 	});
 
-	$(document).on('click', '.menu-item', function(){
+	$('.drawer-menu').on(clickEvent, '.menu-item', function(){
 	    if (this.id == 'confirm-wake-up' || 
 		this.id == 'confirm-shut-down'){
 		toggleMenu($(this));
@@ -151,6 +183,29 @@ var serverList = null;
 	return false;
     });
 })(jQuery);
+
+
+//---------------------------------------------------
+// server definition list object include iterator
+//---------------------------------------------------
+function ServerDefinitionList(text){
+    var object = {
+	definitions: JSON.parse(text),
+	foreach: function(callback){
+	    for (var i in this.definitions){
+		var group = this.definitions[i];
+		group.groupid = i;
+		callback(group);
+		for (var j in group.servers){
+		    server = group.servers[j];
+		    server.groupid = i;
+		    callback(server);
+		}
+	    }
+	}
+    };
+    return object;
+}
 
 
 //---------------------------------------------------
@@ -245,8 +300,8 @@ function popupDialog(params, callback){
 		$placeholder.find('.button')
 		    .css('width', '' + 100 / params.buttons.length + '%');
 
-		$dialog.find('.button').on('click', function(){
-		    $dialog.find('.button').off('click');
+		$dialog.find('.button').on(clickEvent, function(){
+		    $dialog.find('.button').off(clickEvent);
 		    $dialog.removeClass('modal-active');
 		    if (callback){
 			callback($(this).attr('button-id'));
@@ -422,7 +477,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    }).append(svgInLib('power'));
 	    $('<div>Wake up a server</div>').appendTo($menues).attr({
 		"class": "dmenu-item"
-	    }).on('click', function(){
+	    }).on(clickEvent, function(){
 		wakeupServer(server.name, $indicator, function(){
 		});
 		closeDashboard();
@@ -433,7 +488,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    }).append(svgInLib('power'));
 	    $('<div>Stop a server</div>').appendTo($menues).attr({
 		"class": "dmenu-item"
-	    }).on('click', function(){
+	    }).on(clickEvent, function(){
 		sleepServer(server.name, $indicator, function(){
 		});
 		closeDashboard();
@@ -459,7 +514,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 			    "class": "dmenu-item",
 			    "href": url,
 			    "target": "_blank"
-			}).on('click', function(){
+			}).on(clickEvent, function(){
 			    closeDashboard();
 			}).prepend($icon);
 		}
@@ -474,7 +529,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 		'background-image': "url('" + server.icon + "')"
 	    });
 	    var $dashboard = $('#dashboard');
-	    $dashboard.on('click', '#dashboard-cancel', function(){
+	    $dashboard.on(clickEvent, '#dashboard-cancel', function(){
 		closeDashboard();
 	    });
 	    /*
