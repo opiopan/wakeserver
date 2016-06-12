@@ -628,7 +628,7 @@ header .error-logo #symbol path {
   }
 
   .server-entry:first-child > div{
-    border-top: #c0c0c0 1px solid;
+    /*border-top: #c0c0c0 1px solid;*/
   }
 
   .server-entry .indicator { 

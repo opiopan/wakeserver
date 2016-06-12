@@ -45,7 +45,9 @@ var serverList = [];
 			if (group.initial != 'open'){
 			    $node.addClass('fold');
 			}
-			$placeholder.append($node);
+			if (group.groupTitle != 'hide'){
+			    $placeholder.append($node);
+			}
 		    }else{
 			var server = entry;
 			serverList.push(server);
