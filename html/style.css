@@ -641,7 +641,7 @@ header .error-logo #symbol path {
   .server-group .icon {
     width: 34px;
     width: 34px;
-    top: calc(50% - 15px);
+    top: calc(50% - 17px);
   }
 
   .server-group:hover .icon path {
