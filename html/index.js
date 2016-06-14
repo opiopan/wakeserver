@@ -14,6 +14,8 @@ var serverList = [];
 
 (function($) {
     $(document).ready(function(){
+
+	initSVGLibrary();
 	
 	//---------------------------------------------------
 	// main contents creation & update
@@ -42,6 +44,12 @@ var serverList = [];
 				$(selector).toggleClass('fold');
 				$(this).toggleClass('fold');
 			    });
+			if (group.icon){
+			    $node.addClass('withicon');
+			    $("<div/>").prependTo($node).attr({
+				"class": "icon"
+			    }).append(svgInLib(group.icon));
+			}
 			if (group.initial != 'open'){
 			    $node.addClass('fold');
 			}
@@ -102,7 +110,7 @@ var serverList = [];
 	//---------------------------------------------------
 	// respond to click each server
 	//---------------------------------------------------
-	$(document).on(clickEvent, '.server-entry', function(){
+	$('.server-entry').on(clickEvent, function(){
 	    var $indicator = $(this).find('.on-indicator');
 	    var offState = $indicator.hasClass('off-state');
 	    var transitToOn = $indicator.hasClass('transit-to-on');
@@ -120,7 +128,7 @@ var serverList = [];
 	//---------------------------------------------------
 	var $close = $();
 
-	$('.drawer-menu').on(clickEvent, '.menu-btn', function(){
+	$('.drawer-menu .menu-btn').on(clickEvent, function(){
 	    $menu = $(this).parent();
 	    $modal = $('.modal');
 	    if ($menu.hasClass('menu-open')){
@@ -142,7 +150,7 @@ var serverList = [];
 	    $close = $();
 	});
 
-	$('.drawer-menu').on(clickEvent, '.menu-item', function(){
+	$('.drawer-menu .menu-item').on(clickEvent, function(){
 	    if (this.id == 'confirm-wake-up' || 
 		this.id == 'confirm-shut-down'){
 		toggleMenu($(this));
@@ -174,8 +182,6 @@ var serverList = [];
 		}; 
 	    });
 	});
-
-	initSVGLibrary();
 
 	//---------------------------------------------------
 	// reset about sheet
@@ -531,7 +537,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 		'background-image': "url('" + server.icon + "')"
 	    });
 	    var $dashboard = $('#dashboard');
-	    $dashboard.on(clickEvent, '#dashboard-cancel', function(){
+	    $dashboard.find('#dashboard-cancel').on(clickEvent, function(){
 		closeDashboard();
 	    });
 	    /*

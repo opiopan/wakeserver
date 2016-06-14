@@ -439,10 +439,39 @@ header .error-logo #symbol path {
   padding-left: 1.5em;
   font-size: 20pt;
   font-weight: 400;
-  color: #606060;
+  color: #707070;
   border-top: #c0c0c0 1px solid;
   background-color: #e0e0e0;
   cursor: pointer;
+  transition: .5s linear;
+}
+
+.server-group:hover {
+  color: #19C4C4;
+  transition: .2s linear;
+}
+
+.server-group.withicon {
+  padding-left: 3em;
+}
+
+.server-group .icon {
+  display: block;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  left: 1em;
+  top: calc(50% - 20px);
+}
+
+.server-group .icon path {
+  fill: #707070;
+  transition: .5s linear;
+}
+
+.server-group:hover .icon path {
+  fill: #19C4C4;
+  transition: .2s linear;
 }
 
 .server-group:after {
@@ -599,6 +628,24 @@ header .error-logo #symbol path {
     padding-left: 1.5em;
     border-top: none;
     border-bottom: #c0c0c0 1px solid;
+  }
+
+  .server-group:hover {
+    color: #707070;
+  }
+
+  .server-group.withicon {
+    padding-left: 3.2em;
+  }
+
+  .server-group .icon {
+    width: 34px;
+    width: 34px;
+    top: calc(50% - 15px);
+  }
+
+  .server-group:hover .icon path {
+    fill: #707070;
   }
 
   .server-group:after {
