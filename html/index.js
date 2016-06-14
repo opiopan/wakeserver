@@ -135,19 +135,22 @@ var serverList = [];
 		$menu.removeClass('menu-open');
 		$modal.removeClass('modal-inactive');
 		$close = $();
+		exitModal();
 	    }else{
 		$menu.addClass('menu-open');
 		$modal.addClass('modal-inactive');
 		resetAboutSheet();
 		$close = $menu;
+		enterModal();
 	    }
 	});
 
-	$('.modal').on(clickEvent, function(){
+	$('.modal:after').on(clickEvent, function(){
 	    var $modal = $('.modal');
 	    $close.removeClass('menu-open');
 	    $modal.removeClass('modal-inactive');
 	    $close = $();
+	    exitModal();
 	});
 
 	$('.drawer-menu .menu-item').on(clickEvent, function(){
@@ -311,12 +314,14 @@ function popupDialog(params, callback){
 		$dialog.find('.button').on(clickEvent, function(){
 		    $dialog.find('.button').off(clickEvent);
 		    $dialog.removeClass('modal-active');
+		    exitModal();
 		    if (callback){
 			callback($(this).attr('button-id'));
 		    }
 		});
 
 		$dialog.addClass('modal-active');
+		enterModal();
 	    }
 	}
     })(jQuery);
@@ -550,6 +555,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    });
 	    */
 	    $dashboard.addClass('modal-active');
+	    enterModal();
 	}
 	
     })(jQuery);
@@ -558,6 +564,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 function closeDashboard(){
     (function($) {
 	$('#dashboard').removeClass('modal-active')
+	exitModal();
     })(jQuery);
 }
 
@@ -646,6 +653,28 @@ function sleepServer(serverName, $indicator, callback){
 
 	    callback();
 	});
+    })(jQuery);
+}
+
+
+//---------------------------------------------------
+// modal transition
+//---------------------------------------------------
+var isInModal = 0;
+
+function enterModal(){
+    (function($) {
+	isInModal++;
+	$('body').css('overflow', 'hidden');
+    })(jQuery);
+}
+
+function exitModal(){
+    (function($) {
+	isInModal--;
+	if (isInModal == 0){
+	    $('body').css('overflow', 'visible');
+	}
     })(jQuery);
 }
 
