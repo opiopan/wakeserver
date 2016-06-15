@@ -132,31 +132,37 @@ var serverList = [];
 	    $menu = $(this).parent();
 	    $modal = $('.modal');
 	    if ($menu.hasClass('menu-open')){
+		exitModal();
 		$menu.removeClass('menu-open');
 		$modal.removeClass('modal-inactive');
 		$close = $();
-		exitModal();
 	    }else{
+		enterModal();
 		$menu.addClass('menu-open');
 		$modal.addClass('modal-inactive');
 		resetAboutSheet();
 		$close = $menu;
-		enterModal();
 	    }
 	});
 
 	$('.modal:after').on(clickEvent, function(){
 	    var $modal = $('.modal');
+	    exitModal();
 	    $close.removeClass('menu-open');
 	    $modal.removeClass('modal-inactive');
 	    $close = $();
-	    exitModal();
 	});
 
 	$('.drawer-menu .menu-item').on(clickEvent, function(){
 	    if (this.id == 'confirm-wake-up' || 
 		this.id == 'confirm-shut-down'){
 		toggleMenu($(this));
+	    }else if (this.id == 'unfold-all'){
+		$('.server-list .server-group').removeClass('fold');
+		$('.server-list .server-entry').removeClass('fold');
+	    }else if (this.id == 'fold-all'){
+		$('.server-list .server-group').addClass('fold');
+		$('.server-list .server-entry').addClass('fold');
 	    }else if (this.id == 'about-service'){
 		showAboutSheet();
 	    }else{
@@ -312,16 +318,16 @@ function popupDialog(params, callback){
 		    .css('width', '' + 100 / params.buttons.length + '%');
 
 		$dialog.find('.button').on(clickEvent, function(){
+		    exitModal();
 		    $dialog.find('.button').off(clickEvent);
 		    $dialog.removeClass('modal-active');
-		    exitModal();
 		    if (callback){
 			callback($(this).attr('button-id'));
 		    }
 		});
 
-		$dialog.addClass('modal-active');
 		enterModal();
+		$dialog.addClass('modal-active');
 	    }
 	}
     })(jQuery);
@@ -554,8 +560,8 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 		left: $from.offset().left + $from.width()
 	    });
 	    */
-	    $dashboard.addClass('modal-active');
 	    enterModal();
+	    $dashboard.addClass('modal-active');
 	}
 	
     })(jQuery);
@@ -563,8 +569,11 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 
 function closeDashboard(){
     (function($) {
-	$('#dashboard').removeClass('modal-active')
-	exitModal();
+	$dashboard = $('#dashboard');
+	if ($dashboard.hasClass('modal-active')){
+	    exitModal();
+	    $dashboard.removeClass('modal-active');
+	}
     })(jQuery);
 }
 
@@ -661,11 +670,19 @@ function sleepServer(serverName, $indicator, callback){
 // modal transition
 //---------------------------------------------------
 var isInModal = 0;
+var modalScrollPosition = 0;
 
 function enterModal(){
     (function($) {
 	isInModal++;
-	$('body').css('overflow', 'hidden');
+	if (isInModal == 1){
+	    modalScrollPosition = $(window).scrollTop();
+	    $('#main-canvas').css({
+		'position': 'fixed',
+		'width': '100%',
+		'top': -modalScrollPosition
+	    });
+	}
     })(jQuery);
 }
 
@@ -673,7 +690,12 @@ function exitModal(){
     (function($) {
 	isInModal--;
 	if (isInModal == 0){
-	    $('body').css('overflow', 'visible');
+	    $('#main-canvas').css({
+		'position': 'static',
+		'width': '',
+		'top': ''
+	    });
+	    $(window).scrollTop(modalScrollPosition);
 	}
     })(jQuery);
 }
