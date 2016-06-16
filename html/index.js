@@ -126,6 +126,9 @@ var serverList = [];
 	//---------------------------------------------------
 	// drower menu operation
 	//---------------------------------------------------
+	initDrawerMenu();
+
+	/*
 	var $close = $();
 
 	$('.drawer-menu .menu-btn').on(clickEvent, function(){
@@ -177,6 +180,7 @@ var serverList = [];
 		popupDialog(param);
 	    }
 	});
+	*/
 
 	//---------------------------------------------------
 	// SVG load
@@ -265,6 +269,78 @@ function applyServerState($node, server){
 	}
     })(jQuery);
 }
+
+//---------------------------------------------------
+// drower menu operation
+//---------------------------------------------------
+function initDrawerMenu(){
+    (function ($){
+	$('.drawer-menu .menu-btn').on(clickEvent, function(){
+	    toggleDrawerMenu($(this).parent(), $('.modal'));
+	});
+	
+	$('.drawer-menu .menu-item').on(clickEvent, function(){
+	    if (this.id == 'confirm-wake-up' || 
+		this.id == 'confirm-shut-down'){
+		toggleMenu($(this));
+	    }else if (this.id == 'unfold-all'){
+		$('.server-list .server-group').removeClass('fold');
+		$('.server-list .server-entry').removeClass('fold');
+		arrangeMenuItem($(this));
+	    }else if (this.id == 'fold-all'){
+		$('.server-list .server-group').addClass('fold');
+		$('.server-list .server-entry').addClass('fold');
+		resetModalPosition();
+		arrangeMenuItem($(this));
+	    }else if (this.id == 'about-service'){
+		showAboutSheet();
+	    }else{
+		var param = {
+		    title: "Not implemented",
+		    message: "Please wait releasing a new revision " + 
+			"which implement this feature.",
+		    buttons: OkDialog,
+		    definitive: false,
+		    definitiveValue: false
+		};
+		popupDialog(param);
+	    }
+	});
+
+	function toggleDrawerMenu($menu, $modal){
+	    if ($menu.hasClass('menu-open')){
+		exitModal();
+		$menu.removeClass('menu-open');
+		$modal.removeClass('modal-inactive');
+		$modal.off(clickEvent);
+	    }else{
+		arrangeMenuItem($menu);
+		enterModal();
+		$menu.addClass('menu-open');
+		$modal.addClass('modal-inactive');
+		resetAboutSheet();
+		$modal.on(clickEvent, function(){
+		    toggleDrawerMenu($menu, $modal);
+		});
+	    }
+	}
+
+	function arrangeMenuItem(){
+	    $unfold = $(".server-list .server-group:not(.fold)");
+	    $foldmenu = $(".drawer-menu .menu-item#fold-all");
+	    $unfoldmenu = $(".drawer-menu .menu-item#unfold-all");
+	    if ($unfold.length == 0){
+		$foldmenu.css('display', 'none');
+		$unfoldmenu.css('display', 'block');
+	    }else{
+		$foldmenu.css('display', 'block');
+		$unfoldmenu.css('display', 'none');
+	    }
+	}
+
+    })(jQuery);
+}
+
 
 //---------------------------------------------------
 // confirmation dialog
@@ -503,7 +579,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    }).prepend($icon);
 	}else if (isRunning && !isInTransition && scheme.off){
 	    var $icon = $('<div></div>').attr({
-		"class": "icon"
+		"class": "icon pofficon"
 	    }).append(svgInLib('power'));
 	    $('<div>Stop a server</div>').appendTo($menues).attr({
 		"class": "dmenu-item"
@@ -551,17 +627,13 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    $dashboard.find('#dashboard-cancel').on(clickEvent, function(){
 		closeDashboard();
 	    });
-	    /*
-	    var $from = $('.server-list #' + 
-		      escapeSelectorString(server.name) + 
-		      ' .icon');
-	    $('#dashboard-main').offset({
-		top: $from.offset().top + $from.height(),
-		left: $from.offset().left + $from.width()
-	    });
-	    */
+	    
 	    enterModal();
 	    $dashboard.addClass('modal-active');
+	    
+	    $dashboard.on(clickEvent, function(){
+		closeDashboard();
+	    });
 	}
 	
     })(jQuery);
@@ -573,6 +645,7 @@ function closeDashboard(){
 	if ($dashboard.hasClass('modal-active')){
 	    exitModal();
 	    $dashboard.removeClass('modal-active');
+	    $dashboard.off(clickEvent);
 	}
     })(jQuery);
 }
@@ -696,6 +769,17 @@ function exitModal(){
 		'top': ''
 	    });
 	    $(window).scrollTop(modalScrollPosition);
+	}
+    })(jQuery);
+}
+
+function resetModalPosition(){
+    (function($) {
+	if (isInModal > 0){
+	    modalScrollPosition = 0;
+	    $('#main-canvas').css({
+		'top': -modalScrollPosition
+	    });
 	}
     })(jQuery);
 }

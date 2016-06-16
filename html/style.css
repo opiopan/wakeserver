@@ -25,7 +25,7 @@ header {
   padding-left: 60px;
   border-bottom: #c0c0c0 1px solid;
   background-color: rgba(255,255,255,0.95);
-  z-index: 1;
+  /*z-index: 1;*/
 }
 
 header .logo { 
@@ -909,6 +909,10 @@ header .error-logo #symbol path {
   height: 40px;
   margin-right: 20px;
   top: 0.35em;
+}
+
+.dmenu-item .icon.pofficon #symbol path{ 
+  stroke: #A0A0A0;
 }
 
 #dashboard-cancel {
