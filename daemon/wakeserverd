@@ -5,6 +5,7 @@ import sys
 import time
 import json
 import threading
+import subprocess
 
 CONF =             "/var/www/wakeserver/servers.conf"
 PIDFILE =          "/run/wakeserverd.pid"
@@ -78,9 +79,10 @@ def diagServers(servers, statuses, targets, interval):
             status = statuses[i]
             diag = server["scheme"]["diag"]
             cmd = ""
-            if diag == "ping":
+            if diag == "ping" or diag == "arp":
                 cmd = "ping -c1 -W%d %s >/dev/null" % \
                     (interval, server["ipaddr"])
+                arp = "arp %s | tail -1" % (server["ipaddr"])
             elif diag == "custom":
                 cmd = "%s/%s diag '%s' '%s' %d" % \
                     (PLUGIN_DIR, 
@@ -94,8 +96,15 @@ def diagServers(servers, statuses, targets, interval):
                     status["status"] = "on"
                     time.sleep(interval)
                 else:
-                    server["status"] = "off"
-                    status["status"] = "off"
+                    active = False
+                    if diag == "arp" and \
+                            subprocess.check_output(arp, shell = True).\
+                       split()[1] != '(incomplete)':
+                        server["status"] = "on"
+                        status["status"] = "on"
+                    else:
+                        server["status"] = "off"
+                        status["status"] = "off"
 
 def main():
     if daemonize(False, False) == 0:
