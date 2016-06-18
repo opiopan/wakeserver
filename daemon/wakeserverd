@@ -17,6 +17,8 @@ ERROR_FILE =       "/run/wakeserver/error"
 PLUGIN_DIR =       "/var/www/wakeserver/plugin"
 INTERVAL =         1
 INTERVAL_WRITE =   2
+OPERATIVE_MAX =    3
+NORMAL_MAX =       7
 
 class Daemon :
     def __init__(self):
@@ -54,16 +56,28 @@ class Daemon :
             json.dump(self.conf, f1)
             json.dump(self.statuses, f2)
 
-        self.hfThread = threading.Thread(
-            target=diagServers, name="th_hf",
-            args=(self.servers, self.statuses, 
-                  self.operativeServers, INTERVAL))
-        self.nmThread = threading.Thread(
-            target=diagServers, name="th_nm",
-            args=(self.servers, self.statuses,
-                  self.normalServers, INTERVAL))
-        self.hfThread.start()
-        self.nmThread.start()
+        hfThreadNum = int((len(self.operativeServers) + OPERATIVE_MAX - 1) / \
+                              OPERATIVE_MAX)
+        nmThreadNum = int((len(self.normalServers) + NORMAL_MAX - 1) / \
+                              NORMAL_MAX)
+
+        self.hfThread = []
+        for i in range(hfThreadNum):
+            self.hfThread.append(threading.Thread(
+                target=diagServers, name="th_hf",
+                args=(self.servers, self.statuses, 
+                      self.operativeServers, INTERVAL,
+                      hfThreadNum, i)))
+            self.hfThread[i].start()
+
+        self.nmThread = []
+        for i in range(nmThreadNum):
+            self.nmThread.append(threading.Thread(
+                target=diagServers, name="th_nm",
+                args=(self.servers, self.statuses,
+                      self.normalServers, INTERVAL,
+                      nmThreadNum, i)))
+            self.nmThread[i].start()
 
     def run(self):
         while True:
@@ -72,11 +86,11 @@ class Daemon :
                 json.dump(self.statuses, f)
             os.rename(STATUS_FILE_NEW, STATUS_FILE)
 
-def diagServers(servers, statuses, targets, interval):
+def diagServers(servers, statuses, targets, interval, groupNum, current):
     while True:
-        for i in targets:
-            server = servers[i]
-            status = statuses[i]
+        for i in range(current, len(targets), groupNum):
+            server = servers[targets[i]]
+            status = statuses[targets[i]]
             diag = server["scheme"]["diag"]
             cmd = ""
             if diag == "ping" or diag == "arp":

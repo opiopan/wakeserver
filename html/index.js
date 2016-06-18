@@ -154,60 +154,6 @@ var userAgent = (function(u){
 	//---------------------------------------------------
 	initDrawerMenu();
 
-	/*
-	var $close = $();
-
-	$('.drawer-menu .menu-btn').on(clickEvent, function(){
-	    $menu = $(this).parent();
-	    $modal = $('.modal');
-	    if ($menu.hasClass('menu-open')){
-		exitModal();
-		$menu.removeClass('menu-open');
-		$modal.removeClass('modal-inactive');
-		$close = $();
-	    }else{
-		enterModal();
-		$menu.addClass('menu-open');
-		$modal.addClass('modal-inactive');
-		resetAboutSheet();
-		$close = $menu;
-	    }
-	});
-
-	$('.modal:after').on(clickEvent, function(){
-	    var $modal = $('.modal');
-	    exitModal();
-	    $close.removeClass('menu-open');
-	    $modal.removeClass('modal-inactive');
-	    $close = $();
-	});
-
-	$('.drawer-menu .menu-item').on(clickEvent, function(){
-	    if (this.id == 'confirm-wake-up' || 
-		this.id == 'confirm-shut-down'){
-		toggleMenu($(this));
-	    }else if (this.id == 'unfold-all'){
-		$('.server-list .server-group').removeClass('fold');
-		$('.server-list .server-entry').removeClass('fold');
-	    }else if (this.id == 'fold-all'){
-		$('.server-list .server-group').addClass('fold');
-		$('.server-list .server-entry').addClass('fold');
-	    }else if (this.id == 'about-service'){
-		showAboutSheet();
-	    }else{
-		var param = {
-		    title: "Not implemented",
-		    message: "Please wait releasing a new revision " + 
-			     "which implement this feature.",
-		    buttons: OkDialog,
-		    definitive: false,
-		    definitiveValue: false
-		};
-		popupDialog(param);
-	    }
-	});
-	*/
-
 	//---------------------------------------------------
 	// SVG load
 	//---------------------------------------------------
