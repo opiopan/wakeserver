@@ -690,12 +690,12 @@ header .error-logo #symbol path {
   }
 
   .server-entry .icon {
-    width: 64px;
+    width: 75px;
   }
   
   .server-entry .icon span {
-    width: 64px;
-    height: 64px;
+    width: 75px;
+    height: 75px;
   }
 
   .server-entry .description {
