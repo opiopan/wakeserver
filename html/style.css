@@ -681,13 +681,13 @@ header .error-logo #symbol path {
   }
 
   .server-group.withicon {
-    padding-left: 3.2em;
+    padding-left: 2.8em;
   }
 
   .server-group .icon {
-    width: 34px;
-    width: 34px;
-    top: calc(50% - 17px);
+    width: 28px;
+    width: 28px;
+    top: calc(50% - 14px);
   }
 
   .server-group:hover .icon path {
