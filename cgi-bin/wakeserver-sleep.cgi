@@ -40,7 +40,7 @@ if target != "":
                        if (scheme["type"] == "osx" or \
                                scheme["type"] == "unix") \
                                and scheme["off"] == "sudo-shutdown":
-                           cmd = "sudo /sbin/shutdown -h now"
+                           cmd = "nohup sh -c 'sudo /sbin/shutdown -h now'&"
                        elif scheme["type"] == "osx" and \
                                scheme["off"] == "sleep":
                            cmd = "pmset sleepnow"
