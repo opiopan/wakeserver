@@ -210,6 +210,37 @@ header .error-logo #symbol path {
   padding-left: 25px;
 }
 
+.menu-item.withicon > * {
+  padding-left: 65px;
+}
+
+.menu-item > .icon {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  left: 25px;
+  top: calc(50% - 15px);
+}
+
+.menu-item > .icon path {
+  fill: #909090;
+}
+
+.menu-item > .icon.light path {
+  fill: #c0c0c0;
+}
+
+.menu-item > .icon.dark path {
+  fill: #606060;
+}
+
+.menu-item > .icon > .svg {
+  width: 100%;
+  height: 100%;
+}
+
 .menu-item .toggle-btn {
   position: absolute;
   width: 70px;
@@ -251,7 +282,7 @@ header .error-logo #symbol path {
 /* for small screen device */
 @media screen and (max-width: 767px) {
   .drawer-menu {
-    width: 270px;
+    width: 280px;
   }
 
   .drawer-menu .menu-btn {
@@ -265,7 +296,7 @@ header .error-logo #symbol path {
   }
 
   .menu-open {
-    left:calc(100% - 270px);
+    left:calc(100% - 280px);
   }
 
   .menu-open .menu-btn { 
@@ -278,6 +309,19 @@ header .error-logo #symbol path {
 
   .menu-item > * { 
     padding-left: 15px;
+  }
+
+  .menu-item.withicon > * {
+    padding-left: 45px;
+  }
+
+  .menu-item > .icon {
+    width: 22px;
+    height: 22px;
+    left: 15px;
+    margin: 0;
+    padding: 0;
+    top: calc(50% - 11px);
   }
 
   .menu-item .toggle-btn {
@@ -507,7 +551,7 @@ header .error-logo #symbol path {
   box-sizing: border-box;
   border-top: #c0c0c0 1px solid;
   cursor: pointer;
-  transition: .3s linear;
+  transition: .3s ease-in-out;
 }
 
 .server-entry:first-child {

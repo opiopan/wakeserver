@@ -40,9 +40,12 @@ var userAgent = (function(u){
 
 (function($) {
     $(document).ready(function(){
-
-	initSVGLibrary();
-	
+	initSVGLibrary(function(){
+	    initAll();
+	});
+    });
+    
+    function initAll(){
 	//---------------------------------------------------
 	// main contents creation & update
 	//---------------------------------------------------
@@ -174,7 +177,7 @@ var userAgent = (function(u){
 	resetAboutSheet();
 	
 	return false;
-    });
+    }
 })(jQuery);
 
 
@@ -775,7 +778,7 @@ function resetModalPosition(){
 //---------------------------------------------------
 var $svgLibrary
 
-function initSVGLibrary(){
+function initSVGLibrary(callback){
     (function($) {
 	$.ajax({
             url: 'images/svglib.xml',
@@ -784,6 +787,11 @@ function initSVGLibrary(){
             timeout: 1000,
             success: function(xml){
 		$svgLibrary = $(xml);
+		$('.svglib-placeholder').each(function(i, target){
+		    $target = $(target)
+		    $target.append(svgInLib($target.attr('svglibid')));
+		});
+		callback();
 	    },
 	    error: function(){
 		var foo;
@@ -799,6 +807,15 @@ function svgInLib(name){
 	$svg = $svgLibrary.find(selector).clone();
     })(jQuery);
     return $svg;
+}
+
+function embedSvgFromLib($node){
+    (function($){
+	$node.find('*[svglibid]').each(function(i, target){
+	    $target = $(target)
+	    $target.append(svgInLib($target.attr('svglibid')));
+	});
+    })(jQuery);
 }
 
 //---------------------------------------------------
