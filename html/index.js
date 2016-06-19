@@ -354,6 +354,7 @@ function popupDialog(params, callback){
 
 		$title.append(params.title);
 		$message.append(params.message.replace(/\n/g, "<br>"));
+		var defaultId;
 		var i;
 		for (i in params.buttons){
 		    var button = params.buttons[i];
@@ -362,23 +363,31 @@ function popupDialog(params, callback){
 		    $button.attr('button-id', button.name);
 		    if (button.isDefault){
 			$button.addClass('default-button');
+			defaultId = button.name;
+			$dialog.on(clickEvent, function(){
+			    closeById(defaultId);
+			});
 		    }
+		    $button.on(clickEvent, function(){
+			closeById(button.name);
+		    });
 		    $placeholder.append($button);
 		}
 		$placeholder.find('.button')
 		    .css('width', '' + 100 / params.buttons.length + '%');
 
-		$dialog.find('.button').on(clickEvent, function(){
-		    exitModal();
-		    $dialog.find('.button').off(clickEvent);
-		    $dialog.removeClass('modal-active');
-		    if (callback){
-			callback($(this).attr('button-id'));
-		    }
-		});
-
 		enterModal();
 		$dialog.addClass('modal-active');
+
+		function closeById(buttonId){
+		    exitModal();
+		    $dialog.find('.button').off(clickEvent);
+		    $dialog.off(clickEvent);
+		    $dialog.removeClass('modal-active');
+		    if (callback){
+			callback(buttonId);
+		    }
+		}
 	    }
 	}
     })(jQuery);
