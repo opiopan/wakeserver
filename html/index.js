@@ -369,7 +369,8 @@ function popupDialog(params, callback){
 			});
 		    }
 		    $button.on(clickEvent, function(){
-			closeById(button.name);
+			var buttonId = $(this).attr('button-id');
+			closeById(buttonId);
 		    });
 		    $placeholder.append($button);
 		}
