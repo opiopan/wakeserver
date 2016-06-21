@@ -39,13 +39,10 @@ var userAgent = (function(u){
 })(window.navigator.userAgent.toLowerCase());
 
 (function($) {
+
     $(document).ready(function(){
-	initSVGLibrary(function(){
-	    initAll();
-	});
-    });
-    
-    function initAll(){
+	initSVGLibrary();
+
 	//---------------------------------------------------
 	// main contents creation & update
 	//---------------------------------------------------
@@ -177,7 +174,7 @@ var userAgent = (function(u){
 	resetAboutSheet();
 	
 	return false;
-    }
+    });
 })(jQuery);
 
 
@@ -801,7 +798,9 @@ function initSVGLibrary(callback){
 		    $target = $(target)
 		    $target.append(svgInLib($target.attr('svglibid')));
 		});
-		callback();
+		if (callback){
+		    callback();
+		}
 	    },
 	    error: function(){
 		var foo;
