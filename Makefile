@@ -2,7 +2,7 @@ APACHE_CONF		= /etc/apache2/apache2.conf
 PORTS_CONF		= /etc/apache2/ports.conf
 MIME_CONF		= /etc/apache2/mods-available/mime.conf
 SITE_CONF_DIR		= /etc/apache2/sites-available
-SERVERS_DIR		= /var/www/wakeserver
+BASE_DIR		= /var/www/wakeserver
 HTML_DIR		= /var/www/wakeserver/html
 CGI_DIR			= /usr/lib/cgi-bin
 SBIN_DIR		= /var/www/wakeserver/sbin
@@ -23,7 +23,9 @@ CGIENABLING		= '^<Directory \/var\/www\/>' Options \
 
 CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
 			  wakeserver-sleep.cgi
-PLUGINS			= cannon-printer
+PLUGINS			= cannon-printe
+
+PERSONAL		= opiopan
 
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR)
@@ -42,15 +44,12 @@ daemonrestart: $(DAEMON) $(SERVICE_CONF)
 
 copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 	cp apache-conf/wakeserver.conf $(SITE_CONF_DIR) || exit 1
-	cp conf/servers.conf $(SERVERS_DIR) || exit 1
 	cp -R html/* $(HTML_DIR) || exit 1
 	for f in $(CGIS);do \
 	    $(INSTALL) -m755 cgi-bin/$$f $(CGI_DIR)/$$f || exit 1; \
 	done
-	for f in $(PLUGINS);do \
-	    $(INSTALL) -m755 plugin/$$f $(PLUGIN_DIR)/$$f || exit1; \
-	done
 	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
+	cp -R personal/$(PERSONAL)/* $(BASE_DIR) || exit 1
 
 commands: sbin
 	make -C src
