@@ -1,0 +1,102 @@
+#!/usr/bin/python
+
+import sys
+import socket
+import select
+import struct
+
+AMPCONTROL_PORT = 60128
+HEADER_LENGTH   = 16
+
+class OnkyoAmp:
+    class ProtcolException(Exception):
+        def __init__(self, value):
+            self.value = value
+        def __str__(self):
+            return repr(self.value)
+
+    def __init__(self, host):
+        self.in_buf = ''
+        self.in_pos = 0
+        self.in_strs = []
+        self.out_buf = ''
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((host, AMPCONTROL_PORT))
+        self.socklist = [self.sock]
+        self.schedule(True)
+
+    def schedule(self, waitForReadable):
+        recievedStrings = 0
+        while (waitForReadable and recievedStrings == 0) or self.remainWrite():
+            wlist = self.socklist if self.remainWrite() else []
+            r, w, x = select.select(self.socklist, wlist, [])
+            for sock in w:
+                sent = sock.send(self.out_buf)
+                if sent < len(self.out_buf):
+                    self.out_buf = self.out_buf[sent]
+                else:
+                    self.out_buf = ''
+            for sock in r:
+                data = sock.recv(8192)
+                if data == '':
+                    sock.close()
+                    raise ProtcolException('sudden death')
+                else:
+                    if self.in_buf == '':
+                        self.in_buf = data
+                    else:
+                        self.in_buf = self.in_buf + data
+                    recievedStrings = recievedStrings + self.recognize()
+
+    def remainWrite(self):
+        return len(self.out_buf) > 0
+
+    def recognize(self):
+        recognized = 0
+        while len(self.in_buf) - self.in_pos > HEADER_LENGTH:
+            self.hdr_prefix, length, self.hdr_suffix = \
+                struct.unpack_from('!8si4s', self.in_buf, self.in_pos)
+            if len(self.in_buf) - self.in_pos < HEADER_LENGTH + length:
+                return recognized
+            data, = struct.unpack_from(str(length - 3) + 's', self.in_buf, \
+                                           self.in_pos + HEADER_LENGTH)
+            self.in_strs.append(data)            
+            recognized = recognized + 1
+            self.in_pos = self.in_pos + HEADER_LENGTH + length
+        return recognized
+
+    def sendCommand(self, command):
+        data = struct.pack('!8si4s' + str(len(command)) + 'sc', \
+                               self.hdr_prefix, len(command) + 1, \
+                               self.hdr_suffix, command, '\n')
+        if self.out_buf == '':
+            self.out_buf = data
+        else:
+            self.out_buf = self.out_buf + data
+        self.schedule(False)
+
+    def recieveData(self):
+        if len(self.in_strs) == 0:
+            self.schedule(True)
+        return  self.in_strs.pop(0)
+
+def main():
+    command = sys.argv[1]
+    ipaddr = sys.argv[2]
+    macaddr = sys.argv[3]
+    interval = sys.argv[4]
+
+    if command == 'diag':
+        session = OnkyoAmp(ipaddr)
+        session.sendCommand('!1PWRQSTN')
+        while True:
+            data = session.recieveData()
+            if data == '!1PWR01':
+                return 0;
+            elif data == '!1PWR00':
+                return 1;
+
+    return 1
+
+if __name__ == '__main__':
+    sys.exit(main())
