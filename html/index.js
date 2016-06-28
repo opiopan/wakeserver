@@ -654,11 +654,27 @@ function wakeupServer(server, $indicator, callback){
 		return;
 	    }
 	    
-	    var url = 'cgi-bin/wakeserver-wake.cgi';
-	    var param = {"target" : server};
-	    $.post(url, param, function(data) {
-		var foo = data;
+	    $.ajax({
+		type: "POST",
+		url: 'cgi-bin/wakeserver-wake.cgi',
+		data: {"target" : server},
+		scriptCharset: 'utf-8',
+		dataType:'json',
+		success: function(result) {
+		    if (!result.result){
+			var param = {
+			    title: "Fail to wake a server",
+			    message: result.message,
+			    buttons: OkDialog,
+			    definitive: false,
+			    definitiveValue: false
+			};
+			popupDialog(param);
+			$indicator.removeClass('transit-to-on');
+		    }
+		}
 	    });
+
 	    var counter = transitCount++;
 	    $indicator.attr('transit-counter', counter);
 	    $indicator.addClass('transit-to-on');

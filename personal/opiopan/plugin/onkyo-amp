@@ -63,6 +63,9 @@ class OnkyoAmp:
             self.in_strs.append(data)            
             recognized = recognized + 1
             self.in_pos = self.in_pos + HEADER_LENGTH + length
+        if len(self.in_buf) == self.in_pos:
+            self.in_buf = ''
+            self.in_pos = 0
         return recognized
 
     def sendCommand(self, command):
@@ -95,6 +98,20 @@ def main():
                 return 0;
             elif data == '!1PWR00':
                 return 1;
+    elif command == 'on':
+        session = OnkyoAmp(ipaddr)
+        session.sendCommand('!1SLI00')
+        while True:
+            data = session.recieveData()
+            if data.startswith('!1SLI'):
+                return 0;
+    elif command == 'off':
+        session = OnkyoAmp(ipaddr)
+        session.sendCommand('!1PWR00')
+        while True:
+            data = session.recieveData()
+            if data.startswith('!1PWR'):
+                return 0;
 
     return 1
 

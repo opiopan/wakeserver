@@ -48,12 +48,23 @@ if target != "":
                        remote = server["ipaddr"]
                        if "ruser-off" in scheme:
                            remote = scheme["ruser-off"] + "@" + remote
-                   
+
+                       all = []
                        if cmd:
                            all = ["/var/www/wakeserver/sbin/sussh",
                                   scheme["user"],
                                   remote,
                                   cmd]
+
+                       if scheme["off"] == "custom":
+                           cmd = "/var/www/wakeserver/plugin/" + scheme["type"]
+                           all = [cmd,
+                                  "off",
+                                  server["ipaddr"],
+                                  server["macaddr"],
+                                  "0"]
+
+                       if len(all) > 0:
                            nullfile = open("/dev/null")
                            proc = subprocess.Popen(
                                all, stderr=subprocess.PIPE, \
