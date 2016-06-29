@@ -1,0 +1,19 @@
+#!/bin/sh
+
+TVIP="192.168.22.16"
+TVMAC="E8:9D:87:57:69:EE"
+AMPIP="192.168.22.17"
+AMPMAC="00:09:B0:4B:F6:5F"
+
+TVPRG="/var/www/wakeserver/plugin/regza"
+AMPPRG="/var/www/wakeserver/plugin/onkyo-amp"
+
+$AMPPRG diag $AMPIP $AMPMAC 0
+if $TVPRG diag $TVIP $TVMAC 0;then
+    $TVPRG off $TVIP $TVMAC 0
+    while $TVPRG diag $TVIP $TVMAC 0;do : ;done
+    sleep 2
+    $AMPPRG on $AMPIP $AMPMAC 0
+else
+    $AMPPRG on $AMPIP $AMPMAC 0
+fi

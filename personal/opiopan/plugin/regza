@@ -1,0 +1,41 @@
+#!/bin/sh
+
+USER="OPIO"
+PASS="0000"
+AMPSTATUS="/run/wakeserver/onkyo-amp.status"
+
+COMMAND="$1"
+IPADDR="$2"
+MACADDR="$3"
+INTERVAL="$4"
+
+QUERY="http://$IPADDR/remote/status.htm"
+POWER="http://$IPADDR/remote/remote.htm?key=40bf12"
+WGETCMD="wget --http-user=$USER --http-password=$PASS --quiet -O -"
+
+case "$COMMAND" in
+    diag)
+	if ping -c1 -W"$INTERVAL" "$IPADDR" >/dev/null;then
+	    sleep "$INTERVAL"
+	    AMP=`cat $AMPSTATUS`
+	    if [ "$AMP" = "off" ] || [ "$AMP" = "on !1SLI00" ];then
+		exit 1
+	    else
+		exit 0
+	    fi
+	else
+	    exit 1
+	fi
+	;;
+    on)
+	wakeonlan "$MACADDR"
+	while ! $WGETCMD "$QUERY" > /dev/null;do : ;done
+	$WGETCMD "$POWER" > /dev/null
+	;;
+    off)
+	$WGETCMD "$POWER" > /dev/null
+	;;
+    *)
+	exit 1
+	;;
+esac

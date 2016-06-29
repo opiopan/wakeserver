@@ -1,12 +1,16 @@
 #!/usr/bin/python
 
 import sys
+import os
+import time
 import socket
 import select
 import struct
 
 AMPCONTROL_PORT = 60128
 HEADER_LENGTH   = 16
+LOG             = '/run/wakeserver/onkyo-amp.status.new'
+LOG_ORG         = '/run/wakeserver/onkyo-amp.status'
 
 class OnkyoAmp:
     class ProtcolException(Exception):
@@ -23,7 +27,8 @@ class OnkyoAmp:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, AMPCONTROL_PORT))
         self.socklist = [self.sock]
-        self.schedule(True)
+        self.hdr_prefix = '\x49\x53\x43\x50\x00\x00\x00\x10'
+        self.hdr_suffix = '\x01\x00\x00\x00'
 
     def schedule(self, waitForReadable):
         recievedStrings = 0
@@ -83,35 +88,60 @@ class OnkyoAmp:
             self.schedule(True)
         return  self.in_strs.pop(0)
 
+    def waitForResponse(self, kind):
+        while True:
+            data = self.recieveData()
+            if data.startswith(kind):
+                return data
+
 def main():
     command = sys.argv[1]
     ipaddr = sys.argv[2]
     macaddr = sys.argv[3]
-    interval = sys.argv[4]
+    interval = int(sys.argv[4])
 
     if command == 'diag':
         session = OnkyoAmp(ipaddr)
         session.sendCommand('!1PWRQSTN')
-        while True:
-            data = session.recieveData()
+        with open(LOG, 'w') as log:
+            rc = 1
+            data = session.waitForResponse('!1PWR')
             if data == '!1PWR01':
-                return 0;
+                session.sendCommand('!1SLIQSTN')
+                data = session.waitForResponse('!1SLI')
+                print >> log, 'on ' + data
+                time.sleep(interval)
+                rc = 0
             elif data == '!1PWR00':
-                return 1;
+                print >> log, 'off'
+                time.sleep(interval)
+                rc = 1
+        os.rename(LOG, LOG_ORG)
+        return rc
+
     elif command == 'on':
         session = OnkyoAmp(ipaddr)
         session.sendCommand('!1SLI00')
-        while True:
-            data = session.recieveData()
-            if data.startswith('!1SLI'):
-                return 0;
+        data = session.waitForResponse('!1SLI')
+        return 0;
+
     elif command == 'off':
         session = OnkyoAmp(ipaddr)
         session.sendCommand('!1PWR00')
+        data = session.waitForResponse('!1PWR')
+        return 0;
+
+    elif command == 'on-confirm-off':
+        session = OnkyoAmp(ipaddr)
         while True:
-            data = session.recieveData()
-            if data.startswith('!1PWR'):
-                return 0;
+            session.sendCommand('!1PWRQSTN')
+            data = session.waitForResponse('!1PWR')
+            if data == '!1PWR00':
+                break
+        time.sleep(2)
+        session.sendCommand('!1SLI00')
+        data = session.waitForResponse('!1SLI')
+        return 0;
 
     return 1
 
