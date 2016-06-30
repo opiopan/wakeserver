@@ -1,5 +1,9 @@
 #!/bin/sh
 
+SLEEP_DEFFERED=120
+STOP_TIME=/run/wakeserver/musicstopping.time
+AMP_STATUS=/run/wakeserver/onkyo-amp.status
+
 TVIP="192.168.22.16"
 TVMAC="E8:9D:87:57:69:EE"
 AMPIP="192.168.22.17"
@@ -8,12 +12,35 @@ AMPMAC="00:09:B0:4B:F6:5F"
 TVPRG="/var/www/wakeserver/plugin/regza"
 AMPPRG="/var/www/wakeserver/plugin/onkyo-amp"
 
-$AMPPRG diag $AMPIP $AMPMAC 0
-if $TVPRG diag $TVIP $TVMAC 0;then
-    $TVPRG off $TVIP $TVMAC 0
-    while $TVPRG diag $TVIP $TVMAC 0;do : ;done
-    sleep 2
-    $AMPPRG on $AMPIP $AMPMAC 0
-else
-    $AMPPRG on $AMPIP $AMPMAC 0
-fi
+CMD="$1"
+
+case "$CMD" in
+    start)
+	rm $STOP_TIME
+	$AMPPRG diag $AMPIP $AMPMAC 0
+	if $TVPRG diag $TVIP $TVMAC 1;then
+	    $TVPRG off $TVIP $TVMAC 0
+	    while $TVPRG diag $TVIP $TVMAC 1;do : ;done
+	    sleep 2
+	    $AMPPRG on $AMPIP $AMPMAC 0
+	else
+	    $AMPPRG on $AMPIP $AMPMAC 0
+	fi
+	;;
+    stop)
+	date +%s > $STOP_TIME
+	(
+	    sleep $SLEEP_DEFFERED
+	    threshold=`expr $SLEEP_DEFFERED - 5`
+	    now=`date +%s`
+	    past=`cat $STOP_TIME`
+	    if [ "$past" != ""  ] && [ `expr $now - $past` -gt $threshold ];then
+		$AMPPRG diag $AMPIP $AMPMAC 0
+		status=`cat $AMP_STATUS`
+		if [ "$status" = "on !1SLI00" ];then
+		    $AMPPRG off $AMPIP $AMPMAC 0
+		fi
+	    fi 
+	)&
+	;;
+esac

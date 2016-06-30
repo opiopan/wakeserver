@@ -138,7 +138,7 @@ def main():
             data = session.waitForResponse('!1PWR')
             if data == '!1PWR00':
                 break
-        time.sleep(2)
+        time.sleep(3)
         session.sendCommand('!1SLI00')
         data = session.waitForResponse('!1SLI')
         return 0;
