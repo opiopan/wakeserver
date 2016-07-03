@@ -123,6 +123,9 @@ def main():
         session = OnkyoAmp(ipaddr)
         session.sendCommand('!1SLI00')
         data = session.waitForResponse('!1SLI')
+        time.sleep(1)
+        session.sendCommand('!1MVL1A')
+        data = session.waitForResponse('!1MVL')
         return 0;
 
     elif command == 'off':
