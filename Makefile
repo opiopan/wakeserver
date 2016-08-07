@@ -22,7 +22,7 @@ CGIENABLING		= '^<Directory \/var\/www\/>' Options \
 			  '\+ExecCGI' '+ExecCGI'
 
 CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
-			  wakeserver-sleep.cgi
+			  wakeserver-sleep.cgi wakeserver-reboot.cgi
 PLUGINS			= cannon-printe
 
 PERSONAL		= opiopan

@@ -5,7 +5,8 @@ var transitCount = 0;
 
 var defaults = {
     "confirm-wake-up": 'true',
-    "confirm-shut-down": 'true'
+    "confirm-shut-down": 'true',
+    "confirm-reboot": 'true'
 };
 
 var clickEvent="click";
@@ -132,6 +133,7 @@ var userAgent = (function(u){
 	//---------------------------------------------------
 	reflectToToggleMenu('confirm-wake-up');
 	reflectToToggleMenu('confirm-shut-down');
+	reflectToToggleMenu('confirm-reboot');
 	
 	//---------------------------------------------------
 	// respond to click each server
@@ -253,7 +255,8 @@ function initDrawerMenu(){
 	
 	$('.drawer-menu .menu-item').on(clickEvent, function(){
 	    if (this.id == 'confirm-wake-up' || 
-		this.id == 'confirm-shut-down'){
+		this.id == 'confirm-shut-down' ||
+	        this.id == 'confirm-reboot'){
 		toggleMenu($(this));
 	    }else if (this.id == 'unfold-all'){
 		$('.server-list .server-group').removeClass('fold');
@@ -570,6 +573,17 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 		});
 		closeDashboard();
 	    }).prepend($icon);
+	}else if (isRunning && !isInTransition && scheme.reboot){
+	    var $icon = $('<div></div>').attr({
+		"class": "icon"
+	    }).append(svgInLib('reboot'));
+	    $('<div>Reboot a server</div>').appendTo($menues).attr({
+		"class": "dmenu-item"
+	    }).on(clickEvent, function(){
+		rebootServer(server.name, $indicator, function(){
+		});
+		closeDashboard();
+	    }).prepend($icon);
 	}
 
 	for (var i in services){
@@ -714,6 +728,57 @@ function sleepServer(serverName, $indicator, callback){
 		    if (!result.result){
 			var param = {
 			    title: "Fail to stop a server",
+			    message: result.message,
+			    buttons: OkDialog,
+			    definitive: false,
+			    definitiveValue: false
+			};
+			popupDialog(param);
+			$indicator.removeClass('transit-to-on');
+		    }
+		}
+	    });
+	    
+	    var counter = transitCount++;
+	    $indicator.attr('transit-counter', counter);
+	    $indicator.addClass('transit-to-on');
+	    setTimeout(function(){
+		if ($indicator.attr('transit-counter') == counter){
+		    $indicator.removeClass('transit-to-on');
+		}
+	    }, TRANSITION_TIMEOUT);
+
+	    callback();
+	});
+    })(jQuery);
+}
+
+function rebootServer(serverName, $indicator, callback){
+    (function($) {
+	var message = "Are you sure to reboot a server '" + serverName + "' ?";
+	var param = {
+	    title: "Reboot a Server",
+	    message: message,
+	    buttons: YesNoDialog,
+	    definitive: configValue('confirm-reboot') != 'true',
+	    definitiveValue: "Yes"
+	};
+	popupDialog(param, function(result){
+	    if (result != 'Yes'){
+		callback();
+		return;
+	    }
+	    
+	    $.ajax({
+		type: "POST",
+		url: 'cgi-bin/wakeserver-reboot.cgi',
+		data: {"target" : serverName},
+		scriptCharset: 'utf-8',
+		dataType:'json',
+		success: function(result) {
+		    if (!result.result){
+			var param = {
+			    title: "Fail to rebootp a server",
 			    message: result.message,
 			    buttons: OkDialog,
 			    definitive: false,
