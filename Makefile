@@ -63,7 +63,7 @@ $(DAEMON): daemon/wakeserverd $(DAEMON_DIR)
 	$(INSTALL) -m755 $< $@
 
 $(SERVICE_CONF): daemon/wakeserver.service
-	$(INSTALL) $< $@
+	$(INSTALL) -m644 $< $@
 
 $(HTML_DIR) $(DAEMON_DIR) $(PLUGIN_DIR):
 	$(INSTALL) -d $@
