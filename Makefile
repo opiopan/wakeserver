@@ -12,6 +12,12 @@ DAEMON			= $(DAEMON_DIR)/wakeserverd
 SERVICE_CONF		= /etc/systemd/system/wakeserver.service
 
 WAKEONLAN		= /usr/bin/wakeonlan
+NODEJS			= /usr/bin/nodejs
+HOMEBRIDGE		= /usr/bin/homebridge
+HOMEBRIDGE_CONF_DIR	= /var/homebridge
+HOMEBRIDGE_CONF		= $(HOMEBRIDGE_CONF_DIR)/config.json
+HOMEBRIDGE_SERVICE	= /etc/systemd/system/homebridge.service
+HOMEBRIDGE_DEFAULT	= /etc/default/homebridge
 
 INSTALL			= install $(INSTALL_OPT)
 INSTALL_OPT		= -o root -g root
@@ -32,7 +38,7 @@ COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 
 all:
 
-install: apache2restart daemonrestart
+install: apache2restart daemonrestart homebridgerestart
 
 apache2restart: copyfiles apache2config
 	/etc/init.d/apache2 restart
@@ -41,6 +47,14 @@ daemonrestart: $(DAEMON) $(SERVICE_CONF)
 	systemctl daemon-reload || exit 1
 	systemctl enable wakeserver.service || exit 1
 	systemctl restart wakeserver.service || exit 1
+
+homebridgerestart: homebridge-plugin homebridge-config homebridge-service
+	systemctl daemon-reload || exit 1
+	systemctl enable homebridge.service || exit 1
+	systemctl restart homebridge.service || exit 1
+
+homebridge-service: $(HOMEBRIDGE_SERVICE) $(HOMEBRIDGE_DEFAULT)
+
 
 copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 	cp apache-conf/wakeserver.conf $(SITE_CONF_DIR) || exit 1
@@ -54,7 +68,7 @@ copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 commands: sbin
 	make -C src
 
-sbin $(SBIN_DIR):
+intermediate sbin $(SBIN_DIR):
 	mkdir $@
 
 daemon: $(DAEMON) $(SERVICE_CONF)
@@ -82,3 +96,31 @@ $(SITE_CONF_DIR):
 
 $(WAKEONLAN):
 	apt-get -y install wakeonlan
+
+homebridge-plugin: $(HOMEBRIDGE)
+	npm install -g homebridge/homebridge-wakeserver
+
+homebridge-config: $(HOMEBRIDGE_CONF_DIR)
+	cp personal/$(PERSONAL)/homebridge/config.json $(HOMEBRIDGE_CONF_DIR)
+	chown homebridge $(HOMEBRIDGE_CONF_DIR)/config.json
+
+$(HOMEBRIDGE_DEFAULT): homebridge/homebridge
+	$(INSTALL) -m644 $< $@
+
+$(HOMEBRIDGE_SERVICE): homebridge/homebridge.service
+	$(INSTALL) -m644 $< $@
+
+$(HOMEBRIDGE_CONF_DIR):
+	useradd --system homebridge
+	mkdir $@
+	chown homebridge $@
+
+$(HOMEBRIDGE):
+	curl -sL https://deb.nodesource.com/setup_6.x | bash -
+	apt-get install -y nodejs
+	apt-get install -y libavahi-compat-libdnssd-dev
+	npm install -g --unsafe-perm homebridge hap-nodejs node-gyp
+	cd /usr/lib/node_modules/homebridge || exit 1;\
+	npm install --unsafe-perm bignum
+	cd /usr/lib/node_modules/hap-nodejs/node_modules/mdns || exit 1;\
+	node-gyp BUILDTYPE=Release rebuild

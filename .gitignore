@@ -1,2 +1,4 @@
 *.o
 sbin/
+intermediate/
+node_modules
