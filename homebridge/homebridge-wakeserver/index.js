@@ -46,8 +46,12 @@ WSPlatform.prototype.accessories = function(callback) {
 	var scheme = server.config.scheme;
 	if (!this.enableOnlySwitch || (scheme.on && scheme.off)){
 	    if (this.ignoreServers.indexOf(server.config.name) == -1){
-		var a = new WSAccessory(server, i);
+		var a = new WSAccessory(server);
 		accesories.push(a);
+		if (server.config.scheme.volume){
+		    var a = new WSAccessory(server, 'volume');
+		    accesories.push(a);
+		}
 	    }
 	}
     }
@@ -58,7 +62,7 @@ WSPlatform.prototype.accessories = function(callback) {
 //============================================================================
 // Accessory
 //============================================================================
-function WSAccessory(server){
+function WSAccessory(server, type){
     this.server = server;
     this.log = this.server.wakeserver.log;
     this.config = server.config;
@@ -72,24 +76,63 @@ function WSAccessory(server){
 	typeof(this.config.maker) != "undefined" ? 
 	this.config.maker : undefined;
 
-    var service = new Service.Switch(this.name);
+    if (type){
+	this.name = this.name + " : " + type;
+    }
 
-    service.getCharacteristic(Characteristic.On).on('get', function(cb){
-	var status = this.server.getState();
-	this.log.info(this.name + ":On:get: " + status);
-	cb(null, status);
-    }.bind(this));
+    var service;
+    if (type == 'volume'){
+	//--------------------------------------------------
+	//  Volume accessory
+	//--------------------------------------------------
+	service = new Service.Lightbulb(this.name);
 
-    service.getCharacteristic(Characteristic.On).on('set', function(state, cb){
-	this.log.info(this.name + ":On:set " + state);
-	var scheme = this.server.config.scheme;
-	if ((state && scheme.on) || (!state && scheme.off)){
-	    this.server.setPowerState(state);
+	this.log.info(this.name + ': Add volume characteristic');
+
+	var On = service.getCharacteristic(Characteristic.On);
+	On.on('get', function(cb){
+	    var status = this.server.getState();
+	    this.log.info(this.name + ":On:get: " + status);
+	    cb(null, status);
+	}.bind(this));
+	On.on('set', function(state, cb){
+	    this.log.info(this.name + ":On:set " + state);
 	    cb(null);
-	}else{
-	    cb("couldn't operate power");
-	}
-    }.bind(this));
+	}.bind(this));
+	
+	var volume = service.getCharacteristic(Characteristic.Brightness);
+	volume.on('get',function(cb){
+	    this.log.info(this.name + ':Volume:get:');
+	    this.server.setgetVolume(null, cb);
+	}.bind(this));
+	volume.on('set',function(value, cb){
+	    this.log.info(this.name + ':Volume:set: ' + value);
+	    this.server.setgetVolume(value, cb);
+	}.bind(this));
+    }else{
+	//--------------------------------------------------
+	//  Normal accessory
+	//--------------------------------------------------
+	service = new Service.Switch(this.name);
+
+	var On = service.getCharacteristic(Characteristic.On);
+	On.on('get', function(cb){
+	    var status = this.server.getState();
+	    this.log.info(this.name + ":On:get: " + status);
+	    cb(null, status);
+	}.bind(this));
+
+	On.on('set', function(state, cb){
+	    this.log.info(this.name + ":On:set " + state);
+	    var scheme = this.server.config.scheme;
+	    if ((state && scheme.on) || (!state && scheme.off)){
+		this.server.setPowerState(state);
+		cb(null);
+	    }else{
+		cb("couldn't operate power");
+	    }
+	}.bind(this));
+    }
 
     this.service = service;
 }
@@ -165,6 +208,37 @@ Server.prototype = {
 	}, function(error, response, body) {
 	    this.wakeserver.log.info('setPowerState: finished: ' 
 				     + error + ' : ' + body);
+	}.bind(this));
+    },
+
+    setgetVolume: function(volume, cb){
+	var target = this.config.name;
+	var volconf = this.config.scheme.volume;
+	if (volconf.lastIndexOf('relay:', 0) == 0){
+	    target = volconf.slice(6);
+	}
+	var form = {
+	    'target': target,
+	    'attribute': 'volume',
+	};
+	if (volume){
+	    form.value = volume;
+	}
+	request({
+	    url: 'http://localhost:8080/cgi-bin/wakeserver-attribute.cgi',
+	    method: 'POST',
+	    form: form
+	}, function(error, response, body) {
+	    this.wakeserver.log.info('setgetVolume: '
+				     + error + ' : ' + body);
+	    if (!error){
+		json = JSON.parse(body);
+		if (json.value){
+		    cb(null, Number(json.value));
+		    return
+		}
+	    }
+	    cb(error, null);
 	}.bind(this));
     }
 }

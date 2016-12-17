@@ -1,7 +1,7 @@
 {
     "bridge": {
         "name": "Wakeserver Portal",
-        "username": "CC:22:3D:E3:CE:20",
+        "username": "CC:22:3D:E3:CE:21",
         "port": 51826,
         "pin": "123-45-678"
     },
@@ -10,6 +10,9 @@
         {
 	    "platform": "Wakeserver",
 	    "name": "Wakeserver"
+	    "enableOnlySwitch": false,
+	    "ignoreServers" : [
+	    ]
         }
     ]
     

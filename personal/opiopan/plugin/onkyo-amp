@@ -126,13 +126,27 @@ def main():
         time.sleep(1)
         session.sendCommand('!1MVL1A')
         data = session.waitForResponse('!1MVL')
-        return 0;
+        return 0
 
     elif command == 'off':
         session = OnkyoAmp(ipaddr)
         session.sendCommand('!1PWR00')
         data = session.waitForResponse('!1PWR')
-        return 0;
+        return 0
+
+    elif command == 'attribute':
+        object = sys.argv[5]
+        if object == 'volume':
+            post = ''
+            if len(sys.argv) == 6:
+                post = 'QSTN'
+            else:
+                post = '%.2X' % int(sys.argv[6])
+            session = OnkyoAmp(ipaddr)
+            session.sendCommand('!1MVL' + post)
+            data = session.waitForResponse('!1MVL')
+            print int(data[5:], 16)
+            return 0
 
     elif command == 'on-confirm-off':
         session = OnkyoAmp(ipaddr)
@@ -144,7 +158,7 @@ def main():
         time.sleep(3)
         session.sendCommand('!1SLI00')
         data = session.waitForResponse('!1SLI')
-        return 0;
+        return 0
 
     return 1
 
