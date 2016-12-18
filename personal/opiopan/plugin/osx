@@ -1,0 +1,43 @@
+#!/bin/sh
+
+USER="opiopan"
+SUSSH=/var/www/wakeserver/sbin/sussh
+
+COMMAND="$1"
+IPADDR="$2"
+MACADDR="$3"
+INTERVAL="$4"
+ATTRIBUTE="$5"
+VALUE="$6"
+
+case "$COMMAND" in
+    attribute)
+	if [ "$ATTRIBUTE" = airplay ];then
+	    if [ "$VALUE" = "off" ];then
+		CMD=pause
+	    else
+		CMD=play
+	    fi
+	    checkactive $IPADDR $MAC
+	    $SUSSH $USER $IPADDR "jukebox $CMD $VALUE"
+	    echo "$VALUE"
+	else
+	    exit 1
+	fi
+	;;
+    *)
+	exit 1
+	;;
+esac
+exit 0
+
+checkactive() {
+    wakeonlan $2
+    count=0
+    if [ $count -lt 10 ];then
+	count=`expr $count + 1`
+	if ping -c1 -w1 $1 >/dev/null ;then
+	    rturn 0
+	fi
+    fi
+}

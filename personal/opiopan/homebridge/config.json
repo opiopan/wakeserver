@@ -33,6 +33,58 @@
 		    "type": "psensor",
 		    "temperature": 13,
 		    "humidity": 61
+		},
+		{
+		    "name": "Jukebox@living",
+		    "type": "attribute",
+		    "server": "moon",
+		    "on":{
+			"attribute": "airplay",
+			"value": "living"
+		    },
+		    "off":{
+			"attribute": "airplay",
+			"value": "off"
+		    }
+		},
+		{
+		    "name": "Jukebox@bedroom",
+		    "type": "attribute",
+		    "server": "moon",
+		    "on":{
+			"attribute": "airplay",
+			"value": "bedroom"
+		    },
+		    "off":{
+			"attribute": "airplay",
+			"value": "off"
+		    }
+		},
+		{
+		    "name": "Jukebox@library",
+		    "type": "attribute",
+		    "server": "moon",
+		    "on":{
+			"attribute": "airplay",
+			"value": "library"
+		    },
+		    "off":{
+			"attribute": "airplay",
+			"value": "off"
+		    }
+		},
+		{
+		    "name": "Jukebox@bathroom",
+		    "type": "attribute",
+		    "server": "moon",
+		    "on":{
+			"attribute": "airplay",
+			"value": "bathroom"
+		    },
+		    "off":{
+			"attribute": "airplay",
+			"value": "off"
+		    }
 		}
 	    ]
         }

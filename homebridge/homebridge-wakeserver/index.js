@@ -196,9 +196,9 @@ WSAccessory.prototype.getServices = function() {
 //============================================================================
 function CustomAccessory(wakeserver, config) {
     //wakeserver.log.info('CustomAccessory:' + config);
-
     this.config = config;
     this.wakeserver = wakeserver;
+    this.log = this.wakeserver.log;
     this.name = config.name;
     this.type = config.type;
     this.services = [];
@@ -207,6 +207,34 @@ function CustomAccessory(wakeserver, config) {
 	var s = new Service.TemperatureSensor(this.name);
 	var c = s.getCharacteristic(Characteristic.CurrentTemperature);
 	c.value = config.temperature;
+	this.services.push(s);
+    }else if (this.type == 'attribute'){
+	this.onAttribute = config.on.attribute;
+	this.onValue = config.on.value;
+	this.offAttribute = config.off.attribute;
+	this,offValue = config.off.value;
+	var servers = this.wakeserver.servers
+	var i;
+	for (i = 0; i < servers.length; i++){
+	    if (servers[i].config.name == config.server){
+		this.server = servers[i];
+		break;
+	    }
+	}
+	
+	var s = new Service.Switch(this.name);
+	var c = s.getCharacteristic(Characteristic.On);
+	c.on('set', function(state, cb){
+	    this.log.info(this.name + ":On:set " + state);
+	    if (state){
+		this.server.setgetAttribute(
+		    this.onAttribute, this.onValue, function(){});
+	    }else{
+		this.server.setgetAttribute(
+		    this.offAttribute, this.offValue, function(){});
+	    }
+	    cb(null);
+	}.bind(this));
 	this.services.push(s);
     }
 }
