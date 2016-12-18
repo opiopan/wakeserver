@@ -8,9 +8,13 @@ COMMAND="$1"
 IPADDR="$2"
 MACADDR="$3"
 INTERVAL="$4"
+ATTRIBUTE="$5"
+VALUE="$6"
 
 QUERY="http://$IPADDR/remote/status.htm"
 POWER="http://$IPADDR/remote/remote.htm?key=40bf12"
+CHANNEL="http://$IPADDR/remote/remote.htm?key=40bf"
+GENERAL="http://$IPADDR/remote/remote.htm?key="
 WGETCMD="wget --http-user=$USER --http-password=$PASS --quiet -O -"
 
 case "$COMMAND" in
@@ -34,6 +38,44 @@ case "$COMMAND" in
 	;;
     off)
 	$WGETCMD "$POWER" > /dev/null
+	;;
+    attribute)
+	if [ "$ATTRIBUTE" = tvchannel ];then
+	    if [ "$VALUE" = "" ];then
+		echo 99
+		exit 0
+	    fi
+	    if [ "$VALUE" -lt 1 ] || [ "$VALUE" -gt 12 ];then
+		echo 'unsupported channel number was specified'
+		exit 1
+	    fi
+	    NUM=`printf '%.2x' "$VALUE"`
+	    $WGETCMD "$CHANNEL""$NUM" > /dev/null
+	    echo "$VALUE"
+	elif [ "$ATTRIBUTE" = tvband ];then
+	    if [ "$VALUE" = "" ]; then
+		echo unknown
+		exit 0
+	    fi
+	    case "$VALUE" in
+		terrestrial)
+		    CMD=40BF7A
+		    ;;
+		bs)
+		    CMD=40BF7C
+		    ;;
+		cs)
+		    CMD=40BF7D
+		    ;;
+		*)
+		    exit 1
+		    ;;
+	    esac
+	    $WGETCMD "$GENERAL""$CMD" > /dev/null
+	    echo "$VALUE"
+	else
+	    exit 1
+	fi
 	;;
     *)
 	exit 1

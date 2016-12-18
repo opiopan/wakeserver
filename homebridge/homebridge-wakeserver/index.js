@@ -52,15 +52,28 @@ WSPlatform.prototype.accessories = function(callback) {
 		    var a = new WSAccessory(server, 'volume');
 		    accesories.push(a);
 		}
+		if (server.config.scheme.tvchannel){
+		    accesories.push(new WSAccessory(server, 'tvchannel'));
+		    accesories.push(
+			new WSAccessory(server, 'tvband:terrestrial'));
+		    accesories.push(new WSAccessory(server, 'tvband:bs'));
+		    accesories.push(new WSAccessory(server, 'tvband:cs'));
+		}
 	    }
 	}
+    }
+
+    var customs = this.config.accessories;
+    for (i = 0; customs && i < customs.length; i++){
+	var a = new CustomAccessory(this.wakeserver, customs[i]);
+	accesories.push(a);
     }
 
     callback(accesories);
 }
 
 //============================================================================
-// Accessory
+// Accessory for Wakeserver
 //============================================================================
 function WSAccessory(server, type){
     this.server = server;
@@ -68,7 +81,7 @@ function WSAccessory(server, type){
     this.config = server.config;
     this.index = server.index;
     this.name = this.config.name;
-    this.id = this.config.macaddr;
+    this.sid = this.config.macaddr;
     this.model = 
 	typeof(this.config.comment) != "undefined" ? 
 	this.config.comment : undefined;
@@ -81,13 +94,14 @@ function WSAccessory(server, type){
     }
 
     var service;
-    if (type == 'volume'){
+    if (type == 'volume' || type == 'tvchannel'){
 	//--------------------------------------------------
-	//  Volume accessory
+	//  Volume / Channel accessory
 	//--------------------------------------------------
-	service = new Service.Lightbulb(this.name);
+	this.atype = type;
 
-	this.log.info(this.name + ': Add volume characteristic');
+	service = new Service.Lightbulb(this.name);
+	this.log.info(this.name + ': Add '+ this.atype + ' characteristic');
 
 	var On = service.getCharacteristic(Characteristic.On);
 	On.on('get', function(cb){
@@ -102,12 +116,38 @@ function WSAccessory(server, type){
 	
 	var volume = service.getCharacteristic(Characteristic.Brightness);
 	volume.on('get',function(cb){
-	    this.log.info(this.name + ':Volume:get:');
-	    this.server.setgetVolume(null, cb);
+	    this.log.info(this.name + ':' + this.atype + ':get:');
+	    this.server.setgetAttribute(this.atype, null, function(e, v){
+		cb(e, Number(v));
+	    }.bind(this));
 	}.bind(this));
 	volume.on('set',function(value, cb){
-	    this.log.info(this.name + ':Volume:set: ' + value);
-	    this.server.setgetVolume(value, cb);
+	    this.log.info(this.name + ':' + this.atype + ':set: ' + value);
+	    this.server.setgetAttribute(this.atype, value, cb);
+	}.bind(this));
+    }else if (type && type.lastIndexOf('tvband:', 0) == 0){
+	//--------------------------------------------------
+	//  TV band selector accessory
+	//--------------------------------------------------
+	this.band = type.slice(7);
+	
+	service = new Service.Switch(this.name);
+	this.log.info(this.name + ': Add '+ this.band + ' characteristic');
+
+	var On = service.getCharacteristic(Characteristic.On);
+	On.on('get', function(cb){
+	    this.log.info(this.name + ':' + this.band + ':get:');
+	    this.server.setgetAttribute('tvband', null, function(e, v){
+		cb(e, v == this.band);
+	    }.bind(this));
+	}.bind(this));
+	On.on('set', function(state, cb){
+	    this.log.info(this.name + ':' + this.band + ':set: ' + state);
+	    if (state){
+		this.server.setgetAttribute('tvband', this.band, cb);
+	    }else{
+		cb(null);
+	    }
 	}.bind(this));
     }else{
 	//--------------------------------------------------
@@ -143,12 +183,44 @@ WSAccessory.prototype.getServices = function() {
     service.setCharacteristic(Characteristic.Name, this.name)
         .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
         .setCharacteristic(Characteristic.Model, this.model)
-        .setCharacteristic(Characteristic.SerialNumber, this.id)
+        .setCharacteristic(Characteristic.SerialNumber, this.sid)
         .setCharacteristic(Characteristic.FirmwareRevision, '1.0.0')
         .setCharacteristic(Characteristic.HardwareRevision, '1.0.0');
     services.push(service);
     services.push(this.service);
     return services;
+}
+
+//============================================================================
+// Custom accessory
+//============================================================================
+function CustomAccessory(wakeserver, config) {
+    //wakeserver.log.info('CustomAccessory:' + config);
+
+    this.config = config;
+    this.wakeserver = wakeserver;
+    this.name = config.name;
+    this.type = config.type;
+    this.services = [];
+
+    if (this.type == 'psensor'){
+	var s = new Service.TemperatureSensor(this.name);
+	var c = s.getCharacteristic(Characteristic.CurrentTemperature);
+	c.value = config.temperature;
+	this.services.push(s);
+    }
+}
+
+CustomAccessory.prototype.getServices = function(){
+    var service = new Service.AccessoryInformation();
+    service.setCharacteristic(Characteristic.Name, this.name)
+        .setCharacteristic(Characteristic.Manufacturer, 'opiopan')
+        .setCharacteristic(Characteristic.Model, 'Wakeserver')
+        .setCharacteristic(Characteristic.SerialNumber, '00:00:00:00')
+        .setCharacteristic(Characteristic.FirmwareRevision, '1.0.0')
+        .setCharacteristic(Characteristic.HardwareRevision, '1.0.0');
+    this.services.push(service);
+    return this.services;
 }
 
 //============================================================================
@@ -211,30 +283,32 @@ Server.prototype = {
 	}.bind(this));
     },
 
-    setgetVolume: function(volume, cb){
+    setgetAttribute: function(attribute, value, cb){
+	this.wakeserver.log.info('setgetAttribute:' + attribute + ':' + value);
+
 	var target = this.config.name;
-	var volconf = this.config.scheme.volume;
-	if (volconf.lastIndexOf('relay:', 0) == 0){
-	    target = volconf.slice(6);
+	var attrconf = this.config.scheme[attribute];
+	if (attrconf && attrconf.lastIndexOf('relay:', 0) == 0){
+	    target = attrconf.slice(6);
 	}
 	var form = {
 	    'target': target,
-	    'attribute': 'volume',
+	    'attribute': attribute,
 	};
-	if (volume){
-	    form.value = volume;
+	if (value){
+	    form.value = value;
 	}
 	request({
 	    url: 'http://localhost:8080/cgi-bin/wakeserver-attribute.cgi',
 	    method: 'POST',
 	    form: form
 	}, function(error, response, body) {
-	    this.wakeserver.log.info('setgetVolume: '
+	    this.wakeserver.log.info('setgetAttribute: '
 				     + error + ' : ' + body);
 	    if (!error){
 		json = JSON.parse(body);
 		if (json.value){
-		    cb(null, Number(json.value));
+		    cb(null, json.value);
 		    return
 		}
 	    }

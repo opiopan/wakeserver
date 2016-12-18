@@ -11,7 +11,29 @@
 	    "platform": "Wakeserver",
 	    "name": "Wakeserver",
 	    "enableOnlySwitch": false,
+
 	    "ignoreServers" : [
+		"Home router",
+		"L2 switch #1",
+		"L2 switch #2",
+		"WiFi AP #1",
+		"WiFi AP #2",
+		"WiFi AP #3"
+	    ],
+
+	    "accessories": [
+		{
+		    "name": "Living Temp",
+		    "type": "psensor",
+		    "temperature": 22.3,
+		    "humidity": 36.4
+		},
+		{
+		    "name": "Outer Temp",
+		    "type": "psensor",
+		    "temperature": 13,
+		    "humidity": 61
+		}
 	    ]
         }
     ]
