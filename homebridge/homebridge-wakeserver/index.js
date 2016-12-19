@@ -90,7 +90,7 @@ function WSAccessory(server, type){
 	this.config.maker : undefined;
 
     if (type){
-	this.name = this.name + " : " + type;
+	this.name = this.name + ":" + type;
     }
 
     var service;

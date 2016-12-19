@@ -25,13 +25,13 @@
 		{
 		    "name": "Living Temp",
 		    "type": "psensor",
-		    "temperature": 22.3,
+		    "temperature": 21.6,
 		    "humidity": 36.4
 		},
 		{
 		    "name": "Outer Temp",
 		    "type": "psensor",
-		    "temperature": 13,
+		    "temperature": 7,
 		    "humidity": 61
 		},
 		{

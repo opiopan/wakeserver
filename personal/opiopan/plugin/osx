@@ -10,6 +10,20 @@ INTERVAL="$4"
 ATTRIBUTE="$5"
 VALUE="$6"
 
+checkactive() {
+    wakeonlan $2 >/dev/null
+    count=0
+    while [ $count -lt 10 ];do
+	if ping -c1 -w1 $1 >/dev/null ;then
+	    if [ $count -gt 0 ];then
+		sleep 3
+	    fi
+	    return 0
+	fi
+	count=`expr $count + 1`
+    done
+}
+
 case "$COMMAND" in
     attribute)
 	if [ "$ATTRIBUTE" = airplay ];then
@@ -18,7 +32,7 @@ case "$COMMAND" in
 	    else
 		CMD=play
 	    fi
-	    checkactive $IPADDR $MAC
+	    checkactive $IPADDR $MACADDR
 	    $SUSSH $USER $IPADDR "jukebox $CMD $VALUE"
 	    echo "$VALUE"
 	else
@@ -30,14 +44,3 @@ case "$COMMAND" in
 	;;
 esac
 exit 0
-
-checkactive() {
-    wakeonlan $2
-    count=0
-    if [ $count -lt 10 ];then
-	count=`expr $count + 1`
-	if ping -c1 -w1 $1 >/dev/null ;then
-	    rturn 0
-	fi
-    fi
-}
