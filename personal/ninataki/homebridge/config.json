@@ -2,6 +2,11 @@
     "bridge": {
         "name": "Wakeserver Portal",
         "username": "CC:22:3D:E3:CE:21",
+	
+	"manufacturer": "opiopan",
+	"model": "Wakeserver brigde",
+	"serialNumber": "00:00:00:00:00:00",
+
         "port": 51826,
         "pin": "123-45-678"
     },
