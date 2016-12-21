@@ -8,7 +8,7 @@
 	"serialNumber": "00:00:00:00:00:00",
 
         "port": 51826,
-        "pin": "123-45-678",
+        "pin": "123-45-678"
     },
 
     "platforms": [
@@ -28,16 +28,17 @@
 
 	    "accessories": [
 		{
-		    "name": "Living Temp",
+		    "name": "Living Temperature",
 		    "type": "psensor",
-		    "temperature": 21.6,
-		    "humidity": 36.4
+		    "temperature": 21.6
 		},
 		{
-		    "name": "Outer Temp",
+		    "name": "Outer Temperature",
 		    "type": "psensor",
-		    "temperature": 7,
-		    "humidity": 61
+		    "web": {
+			"areaCode": "000",
+			"groupCode": "35"
+		    }
 		},
 		{
 		    "name": "Jukebox@living",

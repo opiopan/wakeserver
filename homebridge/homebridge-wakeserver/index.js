@@ -1,5 +1,7 @@
 var fs = require('fs');
 var request = require('request');
+var webweather = require('./util/webweather.js');
+
 var CONFIG = '/run/wakeserver/status.full';
 var STATUS = '/run/wakeserver/status';
 var Service, Characteristic, Accessory, uuid;
@@ -206,7 +208,17 @@ function CustomAccessory(wakeserver, config) {
     if (this.type == 'psensor'){
 	var s = new Service.TemperatureSensor(this.name);
 	var c = s.getCharacteristic(Characteristic.CurrentTemperature);
-	c.value = config.temperature;
+	if (this.config.web){
+	    this.weather = new webweather(
+		this.log, 
+		this.config.web.areaCode, this.config.web.groupCode);
+	    c.on('get', function(cb){
+		this.log.info(this.name + ":get");
+		cb(null, this.weather.temperature);
+	    }.bind(this));
+	}else{
+	    c.value = config.temperature;
+	}
 	this.services.push(s);
     }else if (this.type == 'attribute'){
 	this.onAttribute = config.on.attribute;
