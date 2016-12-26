@@ -555,7 +555,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    var $icon = $('<div></div>').attr({
 		"class": "icon"
 	    }).append(svgInLib('power'));
-	    $('<div>Wake up a server</div>').appendTo($menues).attr({
+	    $('<div>Turn on power</div>').appendTo($menues).attr({
 		"class": "dmenu-item"
 	    }).on(clickEvent, function(){
 		wakeupServer(server.name, $indicator, function(){
@@ -566,7 +566,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    var $icon = $('<div></div>').attr({
 		"class": "icon pofficon"
 	    }).append(svgInLib('power'));
-	    $('<div>Stop a server</div>').appendTo($menues).attr({
+	    $('<div>Turn off power</div>').appendTo($menues).attr({
 		"class": "dmenu-item"
 	    }).on(clickEvent, function(){
 		sleepServer(server.name, $indicator, function(){
@@ -577,7 +577,7 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 	    var $icon = $('<div></div>').attr({
 		"class": "icon"
 	    }).append(svgInLib('reboot'));
-	    $('<div>Reboot a server</div>').appendTo($menues).attr({
+	    $('<div>Reboot</div>').appendTo($menues).attr({
 		"class": "dmenu-item"
 	    }).on(clickEvent, function(){
 		rebootServer(server.name, $indicator, function(){

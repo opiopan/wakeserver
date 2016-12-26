@@ -1,5 +1,5 @@
-client = require('cheerio-httpcli');
-URL='http://www.jma.go.jp/jp/amedas_h/today-50196.html'
+var client = require('cheerio-httpcli');
+var URL='http://www.jma.go.jp/jp/amedas_h/today-50196.html'
 
 module.exports = webweather;
 
