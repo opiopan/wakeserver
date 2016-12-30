@@ -44,6 +44,7 @@
 		    "name": "Jukebox@living",
 		    "type": "attribute",
 		    "server": "moon",
+		    "atype" : "switch",
 		    "on":{
 			"attribute": "airplay",
 			"value": "living"
@@ -57,6 +58,7 @@
 		    "name": "Jukebox@bedroom",
 		    "type": "attribute",
 		    "server": "moon",
+		    "atype" : "switch",
 		    "on":{
 			"attribute": "airplay",
 			"value": "bedroom"
@@ -70,6 +72,7 @@
 		    "name": "Jukebox@library",
 		    "type": "attribute",
 		    "server": "moon",
+		    "atype" : "switch",
 		    "on":{
 			"attribute": "airplay",
 			"value": "library"
@@ -83,6 +86,7 @@
 		    "name": "Jukebox@bathroom",
 		    "type": "attribute",
 		    "server": "moon",
+		    "atype" : "switch",
 		    "on":{
 			"attribute": "airplay",
 			"value": "bathroom"

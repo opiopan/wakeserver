@@ -14,7 +14,7 @@
     "platforms": [
         {
 	    "platform": "Wakeserver",
-	    "name": "Wakeserver"
+	    "name": "Wakeserver",
 	    "enableOnlySwitch": false,
 	    "ignoreServers" : [
 	    ]
