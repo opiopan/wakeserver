@@ -30,7 +30,12 @@
 		{
 		    "name": "Living Temperature",
 		    "type": "psensor",
-		    "temperature": 21.6
+		    "type": "attribute",
+		    "server": "AV STB #2",
+		    "atype" : "temperature",
+		    "value":{
+			"attribute" : "temperature"
+		    }
 		},
 		{
 		    "name": "Outer Temperature",

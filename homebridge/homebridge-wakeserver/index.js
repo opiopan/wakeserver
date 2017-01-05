@@ -221,10 +221,6 @@ function CustomAccessory(wakeserver, config) {
 	}
 	this.services.push(s);
     }else if (this.type == 'attribute'){
-	this.onAttribute = config.on.attribute;
-	this.onValue = config.on.value;
-	this.offAttribute = config.off.attribute;
-	this,offValue = config.off.value;
 	var servers = this.wakeserver.servers
 	var i;
 	for (i = 0; i < servers.length; i++){
@@ -233,21 +229,40 @@ function CustomAccessory(wakeserver, config) {
 		break;
 	    }
 	}
-	
-	var s = new Service.Switch(this.name);
-	var c = s.getCharacteristic(Characteristic.On);
-	c.on('set', function(state, cb){
-	    this.log.info(this.name + ":On:set " + state);
-	    if (state){
+
+	var atype = config.atype;
+	if (atype == 'switch'){
+	    this.onAttribute = config.on.attribute;
+	    this.onValue = config.on.value;
+	    this.offAttribute = config.off.attribute;
+	    this,offValue = config.off.value;
+	    var s = new Service.Switch(this.name);
+	    var c = s.getCharacteristic(Characteristic.On);
+	    c.on('set', function(state, cb){
+		this.log.info(this.name + ":On:set " + state);
+		if (state){
+		    this.server.setgetAttribute(
+			this.onAttribute, this.onValue, function(){});
+		}else{
+		    this.server.setgetAttribute(
+			this.offAttribute, this.offValue, function(){});
+		}
+		cb(null);
+	    }.bind(this));
+	    this.services.push(s);
+	}else if (atype == 'temperature'){
+	    this.valueAttribute = config.value.attribute;
+	    var s = new Service.TemperatureSensor(this.name);
+	    var c = s.getCharacteristic(Characteristic.CurrentTemperature);
+	    c.on('get', function(cb){
+		this.log.info(this.name + ":Value:get");
 		this.server.setgetAttribute(
-		    this.onAttribute, this.onValue, function(){});
-	    }else{
-		this.server.setgetAttribute(
-		    this.offAttribute, this.offValue, function(){});
-	    }
-	    cb(null);
-	}.bind(this));
-	this.services.push(s);
+		    this.valueAttribute, null, function(error, value){
+			cb(null, Number(value));
+		    });
+	    }.bind(this));
+	    this.services.push(s);
+	}
     }
 }
 

@@ -43,7 +43,10 @@ if target != "":
                if server["name"] == target:
                    response["message"] = "No way to invoke command"
                    scheme = server["scheme"]
-                   cmd = "/var/www/wakeserver/plugin/" + scheme["type"]
+                   plugin = scheme["type"]
+                   if "plugin" in scheme:
+                       plugin = scheme["plugin"]
+                   cmd = "/var/www/wakeserver/plugin/" + plugin
                    all = [cmd,
                           "attribute",
                           server["ipaddr"],

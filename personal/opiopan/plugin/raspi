@@ -1,0 +1,31 @@
+#!/bin/sh
+
+USER="opiopan"
+SUSSH=/var/www/wakeserver/sbin/sussh
+
+TEMP=/run/temper.now
+
+COMMAND="$1"
+IPADDR="$2"
+MACADDR="$3"
+INTERVAL="$4"
+ATTRIBUTE="$5"
+VALUE="$6"
+
+case "$COMMAND" in
+    attribute)
+	if [ "$ATTRIBUTE" = temperature ];then
+	    if [ "$VALUE" = "" ];then
+		$SUSSH $USER $IPADDR 'printf "%.1f\n" `cat '$TEMP'`'
+	    else
+		exit 1
+	    fi
+	else
+	    exit 1
+	fi
+	;;
+    *)
+	exit 1
+	;;
+esac
+exit 0
