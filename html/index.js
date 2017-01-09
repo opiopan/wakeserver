@@ -542,6 +542,11 @@ var dashboardMenuConf = {
 	"text": "AFP sharing",
 	"icon": "folder",
 	"prefix": "afp"
+    },
+    "camera": {
+	"text": "Surveillance",
+	"icon": "camera",
+	"prefix": "http"
     }
 };
 
