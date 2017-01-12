@@ -18,6 +18,7 @@ HOMEBRIDGE_CONF_DIR	= /var/homebridge
 HOMEBRIDGE_CONF		= $(HOMEBRIDGE_CONF_DIR)/config.json
 HOMEBRIDGE_SERVICE	= /etc/systemd/system/homebridge.service
 HOMEBRIDGE_DEFAULT	= /etc/default/homebridge
+HOMEBRIDGE_RUNNER	= /var/www/wakeserver/daemon/homebridge.run
 
 INSTALL			= install $(INSTALL_OPT)
 INSTALL_OPT		= -o root -g root
@@ -54,7 +55,7 @@ homebridgerestart: homebridge-plugin homebridge-config homebridge-service
 	systemctl enable homebridge.service || exit 1
 	systemctl restart homebridge.service || exit 1
 
-homebridge-service: $(HOMEBRIDGE_SERVICE) $(HOMEBRIDGE_DEFAULT)
+homebridge-service: $(HOMEBRIDGE_SERVICE) $(HOMEBRIDGE_DEFAULT) $(HOMEBRIDGE_RUNNER)
 
 
 copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
@@ -110,6 +111,9 @@ $(HOMEBRIDGE_DEFAULT): homebridge/homebridge
 
 $(HOMEBRIDGE_SERVICE): homebridge/homebridge.service
 	$(INSTALL) -m644 $< $@
+
+$(HOMEBRIDGE_RUNNER): homebridge/homebridge.run
+	$(INSTALL) -m755 $< $@
 
 $(HOMEBRIDGE_CONF_DIR):
 	useradd --system homebridge

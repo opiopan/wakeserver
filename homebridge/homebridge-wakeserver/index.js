@@ -235,7 +235,7 @@ function CustomAccessory(wakeserver, config) {
 	    this.onAttribute = config.on.attribute;
 	    this.onValue = config.on.value;
 	    this.offAttribute = config.off.attribute;
-	    this,offValue = config.off.value;
+	    this.offValue = config.off.value;
 	    var s = new Service.Switch(this.name);
 	    var c = s.getCharacteristic(Characteristic.On);
 	    c.on('set', function(state, cb){
