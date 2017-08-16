@@ -17,6 +17,10 @@ CHANNEL="http://$IPADDR/remote/remote.htm?key=40bf"
 GENERAL="http://$IPADDR/remote/remote.htm?key="
 WGETCMD="wget --http-user=$USER --http-password=$PASS --quiet -O -"
 
+PAUSEPLAY=40BF50
+SKIPF=40BE26
+SKIPB=40BE27
+
 case "$COMMAND" in
     diag)
 	if ping -c1 -W"$INTERVAL" "$IPADDR" >/dev/null;then
@@ -73,6 +77,76 @@ case "$COMMAND" in
 	    esac
 	    $WGETCMD "$GENERAL""$CMD" > /dev/null
 	    echo "$VALUE"
+	elif [ "$ATTRIBUTE" = tvchannelname ];then
+	    if [ "$VALUE" = "" ];then
+		echo unknown
+		exit 0
+	    fi
+	    echo "$VALUE" | tr '-' '\n' | while read ITEM;do
+		CMD="$GENERAL"
+		case "$ITEM" in
+		    TV)
+			SUFFIX=40BF7A
+			;;
+		    BS)
+			SUFFIX=40BF7C
+			;;
+		    CS)
+			SUFFIX=40BF7D
+			;;
+		    *)
+			if [ "$ITEM" -ge 1 ] || [ "$ITEM" -le 12 ];then
+			    :
+			else
+			    echo 'unsupported channel number was specified'
+			    exit 1
+			fi
+			CMD="$CHANNEL"
+			SUFFIX=`printf '%.2x' "$ITEM"`
+			;;
+		esac
+		$WGETCMD "$CMD""$SUFFIX" > /dev/null
+	    done || exit 1
+	    echo "$VALUE"
+	elif [ "$ATTRIBUTE" = player ];then
+	    if [ "$VALUE" = "" ]; then
+		echo unknown
+		exit 0
+	    fi
+	    case "$VALUE" in
+		pauseplay)
+		    CMD=$PAUSEPLAY
+		    ;;
+		skipf)
+		    CMD=$SKIPF
+		    ;;
+		skipb)
+		    CMD=$SKIPB
+		    ;;
+		*)
+		    exit 1
+		    ;;
+	    esac
+	    $WGETCMD "$GENERAL""$CMD" > /dev/null
+	    echo unknown
+	elif [ "$ATTRIBUTE" = volumerelative ];then
+	    if [ "$VALUE" = "" ]; then
+		echo unknown
+		exit 0
+	    fi
+	    case "$VALUE" in
+		increase)
+		    CMD=40BF1A
+		    ;;
+		decrease)
+		    CMD=40BF1E
+		    ;;
+		*)
+		    exit 1
+		    ;;
+	    esac
+	    $WGETCMD "$GENERAL""$CMD" > /dev/null
+	    echo unknown
 	else
 	    exit 1
 	fi

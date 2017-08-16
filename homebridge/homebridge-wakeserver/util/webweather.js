@@ -1,3 +1,4 @@
+var fs = require('fs');
 var client = require('cheerio-httpcli');
 var URL='http://www.jma.go.jp/jp/amedas_h/today-50196.html'
 
@@ -7,6 +8,9 @@ function webweather(log, areaCode, groupCode) {
     var self = this;
 
     self.log = log;
+    self.outname = 
+	'/run/wakeserver/homebridge-weather-' + areaCode + '-' + groupCode;
+    self.tmpname = self.outname + '.tmp';
     self.areaCode = areaCode;
     self.groupCode = groupCode;
 
@@ -46,6 +50,24 @@ webweather.prototype = {
 		    }
 		});
 		self.temperature = self.lastTemperature;
+		fs.writeFile(self.tmpname, 
+			     self.lastTemperature.toString(10), 
+			     function(err){
+				 if (err){
+				     self.log.error('webweather: write error: '
+						    + self.tmpname);
+				 }else{
+				     fs.rename(self.tmpname, 
+					       self.outname,
+					       function(err){
+						   if (err){
+						       self.log.error(
+							   'webweather: ' +
+							   'rename error');
+						   }
+					       });
+				 }
+			     });
 		self.log.info('webweather: ' + self.temperature + ' degree');
 	    }
 	});

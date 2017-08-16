@@ -4,6 +4,7 @@ USER="opiopan"
 SUSSH=/var/www/wakeserver/sbin/sussh
 
 TEMP=/run/temper.now
+TEMPOUT=/run/wakeserver/homebridge-weather-000-35
 
 COMMAND="$1"
 IPADDR="$2"
@@ -17,6 +18,12 @@ case "$COMMAND" in
 	if [ "$ATTRIBUTE" = temperature ];then
 	    if [ "$VALUE" = "" ];then
 		$SUSSH $USER $IPADDR 'printf "%.1f\n" `cat '$TEMP'`'
+	    else
+		exit 1
+	    fi
+	elif [ "$ATTRIBUTE" = temperature-out ];then
+	    if [ "$VALUE" = "" ];then
+		$SUSSH $USER $IPADDR 'printf "%.1f\n" `cat '$TEMPOUT'`'
 	    else
 		exit 1
 	    fi

@@ -210,7 +210,7 @@ function CustomAccessory(wakeserver, config) {
 	var c = s.getCharacteristic(Characteristic.CurrentTemperature);
 	if (this.config.web){
 	    this.weather = new webweather(
-		this.log, 
+		this.log,
 		this.config.web.areaCode, this.config.web.groupCode);
 	    c.on('get', function(cb){
 		this.log.info(this.name + ":get");

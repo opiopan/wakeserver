@@ -30,7 +30,7 @@ CGIENABLING		= '^<Directory \/var\/www\/>' Options \
 
 CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
 			  wakeserver-sleep.cgi wakeserver-reboot.cgi \
-			  wakeserver-attribute.cgi
+			  wakeserver-attribute.cgi wakeserver-config.cgi
 PLUGINS			= cannon-printe
 
 PERSONAL		= opiopan
