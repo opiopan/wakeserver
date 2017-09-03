@@ -1,0 +1,26 @@
+#!/usr/bin/python
+
+import sys
+import json
+
+def printUsage():
+    print >> sys.stderr, 'usage: extjson <FILE> <ELEMENT-NAME>'
+
+def main():
+    args = sys.argv
+    if len(args) != 3:
+        printUsage()
+        return 1
+
+    file=args[1]
+    key=args[2]
+
+    with open(file) as f:
+        object = json.load(f)
+        if key in object :
+            print object[key]
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())

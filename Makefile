@@ -24,6 +24,7 @@ INSTALL			= install $(INSTALL_OPT)
 INSTALL_OPT		= -o root -g root
 UNCOMMENT		= tool/uncomment
 ADDOPTION		= tool/addoption
+EXTJSON			= tool/extjson
 
 CGIENABLING		= '^<Directory \/var\/www\/>' Options \
 			  '\+ExecCGI' '+ExecCGI'
@@ -34,13 +35,20 @@ CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
 PLUGINS			= cannon-printe
 
 PERSONAL		= opiopan
+WAKESERVERCONF_SRC	= personal/$(PERSONAL)/wakeserver.conf
 
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR)
 
 all:
 
-install: apache2restart daemonrestart homebridgerestart
+install: apache2restart daemonrestart avahirestart homebridgerestart
+
+avahirestart:
+	m4 -D ID="`$(EXTJSON) $(WAKESERVERCONF_SRC) uuid`"\
+	   -D DESC="`$(EXTJSON) $(WAKESERVERCONF_SRC) description`"\
+	   avahi/wakeserver.service > /etc/avahi/services/wakeserver.service
+	service avahi-daemon restart
 
 apache2restart: copyfiles apache2config
 	/etc/init.d/apache2 restart

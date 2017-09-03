@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">%h</name>
+  <service>
+    <type>_wakeserver._tcp</type>
+    <port>8080</port>
+    <txt-record>id=ID</txt-record>
+    <txt-record>desc=DESC</txt-record>
+  </service>
+</service-group>
