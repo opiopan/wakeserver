@@ -36,6 +36,7 @@ PLUGINS			= cannon-printe
 
 PERSONAL		= opiopan
 WAKESERVERCONF_SRC	= personal/$(PERSONAL)/wakeserver.conf
+SERVERSCONF_SRC		= personal/$(PERSONAL)/servers.conf
 
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR)
@@ -47,6 +48,9 @@ install: apache2restart daemonrestart avahirestart homebridgerestart
 avahirestart:
 	m4 -D ID="`$(EXTJSON) $(WAKESERVERCONF_SRC) uuid`"\
 	   -D DESC="`$(EXTJSON) $(WAKESERVERCONF_SRC) description`"\
+	   -D PLATFORM="`$(EXTJSON) $(WAKESERVERCONF_SRC) platform`"\
+	   -D CONFIGHASH="`md5sum $(WAKESERVERCONF_SRC) | cut -d' ' -f1`"\
+	   -D SERVERSHASH="`md5sum $(SERVERSCONF_SRC) | cut -d' ' -f1`"\
 	   avahi/wakeserver.service > /etc/avahi/services/wakeserver.service
 	service avahi-daemon restart
 
