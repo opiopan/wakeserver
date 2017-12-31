@@ -20,6 +20,8 @@ WGETCMD="wget --http-user=$USER --http-password=$PASS --quiet -O -"
 PAUSEPLAY=40BF50
 SKIPF=40BE26
 SKIPB=40BE27
+ALTSKIPF=40BE22
+ALTSKIPB=40BE23
 
 case "$COMMAND" in
     diag)
@@ -122,6 +124,12 @@ case "$COMMAND" in
 		    ;;
 		skipb)
 		    CMD=$SKIPB
+		    ;;
+		altskipf)
+		    CMD=$ALTSKIPF
+		    ;;
+		altskipb)
+		    CMD=$ALTSKIPB
 		    ;;
 		*)
 		    exit 1
