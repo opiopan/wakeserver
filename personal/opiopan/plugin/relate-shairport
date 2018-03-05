@@ -4,8 +4,8 @@ SLEEP_DEFFERED=120
 STOP_TIME=/run/wakeserver/musicstopping.time
 AMP_STATUS=/run/wakeserver/onkyo-amp.status
 
-TVIP="192.168.22.16"
-TVMAC="E8:9D:87:57:69:EE"
+TVIP="192.168.22.39"
+TVMAC="EC:21:E5:69:1E:9B"
 AMPIP="192.168.22.17"
 AMPMAC="00:09:B0:4B:F6:5F"
 

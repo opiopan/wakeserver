@@ -11,15 +11,17 @@ INTERVAL="$4"
 ATTRIBUTE="$5"
 VALUE="$6"
 
-IRTX="irtx 192.168.22.31 nec"
+QUERY="http://$IPADDR/remote/status.htm"
+POWER="http://$IPADDR/remote/remote.htm?key=40bf12"
+CHANNEL="http://$IPADDR/remote/remote.htm?key=40bf"
+GENERAL="http://$IPADDR/remote/remote.htm?key="
+WGETCMD="wget --http-user=$USER --http-password=$PASS --quiet -O -"
 
-POWER=40BD12
-CHANNEL=40BD
-PAUSEPLAY=40BD50
-SKIPF=40BC26
-SKIPB=40BC27
-ALTSKIPF=40BC23
-ALTSKIPB=40BC22
+PAUSEPLAY=40BF50
+SKIPF=40BE26
+SKIPB=40BE27
+ALTSKIPF=40BE23
+ALTSKIPB=40BE22
 
 case "$COMMAND" in
     diag)
@@ -36,10 +38,12 @@ case "$COMMAND" in
 	fi
 	;;
     on)
-	$IRTX "$POWER" > /dev/null
+	wakeonlan "$MACADDR"
+	while ! $WGETCMD "$QUERY" > /dev/null;do : ;done
+	$WGETCMD "$POWER" > /dev/null
 	;;
     off)
-	$IRTX "$POWER" > /dev/null
+	$WGETCMD "$POWER" > /dev/null
 	;;
     attribute)
 	if [ "$ATTRIBUTE" = tvchannel ];then
@@ -52,7 +56,7 @@ case "$COMMAND" in
 		exit 1
 	    fi
 	    NUM=`printf '%.2x' "$VALUE"`
-	    $IRTX "$CHANNEL""$NUM" > /dev/null
+	    $WGETCMD "$CHANNEL""$NUM" > /dev/null
 	    echo "$VALUE"
 	elif [ "$ATTRIBUTE" = tvband ];then
 	    if [ "$VALUE" = "" ]; then
@@ -61,19 +65,19 @@ case "$COMMAND" in
 	    fi
 	    case "$VALUE" in
 		terrestrial)
-		    CMD=40BD7A
+		    CMD=40BF7A
 		    ;;
 		bs)
-		    CMD=40BD7C
+		    CMD=40BF7C
 		    ;;
 		cs)
-		    CMD=40BD7D
+		    CMD=40BF7D
 		    ;;
 		*)
 		    exit 1
 		    ;;
 	    esac
-	    $IRTX "$CMD" > /dev/null
+	    $WGETCMD "$GENERAL""$CMD" > /dev/null
 	    echo "$VALUE"
 	elif [ "$ATTRIBUTE" = tvchannelname ];then
 	    if [ "$VALUE" = "" ];then
@@ -81,16 +85,16 @@ case "$COMMAND" in
 		exit 0
 	    fi
 	    echo "$VALUE" | tr '-' '\n' | while read ITEM;do
-		CMD=""
+		CMD="$GENERAL"
 		case "$ITEM" in
 		    TV)
-			SUFFIX=40BD7A
+			SUFFIX=40BF7A
 			;;
 		    BS)
-			SUFFIX=40BD7C
+			SUFFIX=40BF7C
 			;;
 		    CS)
-			SUFFIX=40BD7D
+			SUFFIX=40BF7D
 			;;
 		    *)
 			if [ "$ITEM" -ge 1 ] || [ "$ITEM" -le 12 ];then
@@ -103,7 +107,7 @@ case "$COMMAND" in
 			SUFFIX=`printf '%.2x' "$ITEM"`
 			;;
 		esac
-		$IRTX "$CMD""$SUFFIX" > /dev/null
+		$WGETCMD "$CMD""$SUFFIX" > /dev/null
 	    done || exit 1
 	    echo "$VALUE"
 	elif [ "$ATTRIBUTE" = player ];then
@@ -131,7 +135,7 @@ case "$COMMAND" in
 		    exit 1
 		    ;;
 	    esac
-	    $IRTX "$CMD" > /dev/null
+	    $WGETCMD "$GENERAL""$CMD" > /dev/null
 	    echo unknown
 	elif [ "$ATTRIBUTE" = volumerelative ];then
 	    if [ "$VALUE" = "" ]; then
@@ -149,7 +153,7 @@ case "$COMMAND" in
 		    exit 1
 		    ;;
 	    esac
-	    $IRTX "$CMD" > /dev/null
+	    $WGETCMD "$GENERAL""$CMD" > /dev/null
 	    echo unknown
 	else
 	    exit 1
