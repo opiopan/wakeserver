@@ -81,12 +81,20 @@ case "$COMMAND" in
 		exit 0
 	    fi
 	    echo "$VALUE" | tr '-' '\n' | while read ITEM;do
+		PRECMD=""
+		PRECMD2=""
 		CMD=""
 		case "$ITEM" in
 		    TV)
 			SUFFIX=40BD7A
 			;;
 		    BS)
+			PRECMD=40BD7A
+			SUFFIX=40BD7C
+			;;
+		    BS2)
+			PRECMD=40BD7A
+			PRECMD2=40BD7C
 			SUFFIX=40BD7C
 			;;
 		    CS)
@@ -103,6 +111,15 @@ case "$COMMAND" in
 			SUFFIX=`printf '%.2x' "$ITEM"`
 			;;
 		esac
+		if ! [ "$PRECMD" = "" ]; then
+		    $IRTX "$PRECMD" > /dev/null
+		    sleep 0.1
+		    if ! [ "$PRECMD2" = "" ]; then
+			sleep 0.2
+			$IRTX "$PRECMD2" > /dev/null
+			sleep 0.3
+		    fi
+		fi
 		$IRTX "$CMD""$SUFFIX" > /dev/null
 	    done || exit 1
 	    echo "$VALUE"
