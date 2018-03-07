@@ -13,13 +13,13 @@ VALUE="$6"
 
 IRTX="irtx 192.168.22.31 nec"
 
-POWER=40BD12
+POWER=40BD12ED
 CHANNEL=40BD
-PAUSEPLAY=40BD50
-SKIPF=40BC26
-SKIPB=40BC27
-ALTSKIPF=40BC23
-ALTSKIPB=40BC22
+PAUSEPLAY=40BD50AF
+SKIPF=40BC26D9
+SKIPB=40BC27D8
+ALTSKIPF=40BC23DC
+ALTSKIPB=40BC22DD
 
 case "$COMMAND" in
     diag)
@@ -51,7 +51,7 @@ case "$COMMAND" in
 		echo 'unsupported channel number was specified'
 		exit 1
 	    fi
-	    NUM=`printf '%.2x' "$VALUE"`
+	    NUM=`printf '%.2x%.2x' "$VALUE" $((~"$VALUE" & 0xff))`
 	    $IRTX "$CHANNEL""$NUM" > /dev/null
 	    echo "$VALUE"
 	elif [ "$ATTRIBUTE" = tvband ];then
@@ -61,13 +61,13 @@ case "$COMMAND" in
 	    fi
 	    case "$VALUE" in
 		terrestrial)
-		    CMD=40BD7A
+		    CMD=40BD7A85
 		    ;;
 		bs)
-		    CMD=40BD7C
+		    CMD=40BD7C83
 		    ;;
 		cs)
-		    CMD=40BD7D
+		    CMD=40BD7D82
 		    ;;
 		*)
 		    exit 1
@@ -86,19 +86,19 @@ case "$COMMAND" in
 		CMD=""
 		case "$ITEM" in
 		    TV)
-			SUFFIX=40BD7A
+			SUFFIX=40BD7A85
 			;;
 		    BS)
-			PRECMD=40BD7A
-			SUFFIX=40BD7C
+			PRECMD=40BD7A85
+			SUFFIX=40BD7C83
 			;;
 		    BS2)
-			PRECMD=40BD7A
-			PRECMD2=40BD7C
-			SUFFIX=40BD7C
+			PRECMD=40BD7A85
+			PRECMD2=40BD7C83
+			SUFFIX=40BD7C83
 			;;
 		    CS)
-			SUFFIX=40BD7D
+			SUFFIX=40BD7D82
 			;;
 		    *)
 			if [ "$ITEM" -ge 1 ] || [ "$ITEM" -le 12 ];then
@@ -108,7 +108,7 @@ case "$COMMAND" in
 			    exit 1
 			fi
 			CMD="$CHANNEL"
-			SUFFIX=`printf '%.2x' "$ITEM"`
+			SUFFIX=`printf '%.2x%.2x' "$ITEM" $((~$ITEM & 0xff))`
 			;;
 		esac
 		if ! [ "$PRECMD" = "" ]; then
@@ -157,10 +157,10 @@ case "$COMMAND" in
 	    fi
 	    case "$VALUE" in
 		increase)
-		    CMD=40BF1A
+		    CMD=40BF1AE5
 		    ;;
 		decrease)
-		    CMD=40BF1E
+		    CMD=40BF1EE1
 		    ;;
 		*)
 		    exit 1
