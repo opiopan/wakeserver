@@ -115,12 +115,13 @@ case "$COMMAND" in
 		    $IRTX "$PRECMD" > /dev/null
 		    sleep 0.1
 		    if ! [ "$PRECMD2" = "" ]; then
-			sleep 0.2
+			sleep 0.1
 			$IRTX "$PRECMD2" > /dev/null
-			sleep 0.3
+			sleep 0.2
 		    fi
 		fi
 		$IRTX "$CMD""$SUFFIX" > /dev/null
+		sleep 0.1
 	    done || exit 1
 	    echo "$VALUE"
 	elif [ "$ATTRIBUTE" = player ];then
