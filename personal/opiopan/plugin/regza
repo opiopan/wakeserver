@@ -11,7 +11,7 @@ INTERVAL="$4"
 ATTRIBUTE="$5"
 VALUE="$6"
 
-IRTX="irtx 192.168.22.31 nec"
+IRTX="irtx elflet-living.local nec"
 
 POWER=40BD12ED
 CHANNEL=40BD
