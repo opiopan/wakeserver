@@ -10,6 +10,7 @@ PLUGIN_DIR		= /var/www/wakeserver/plugin
 DAEMON_DIR		= /var/www/wakeserver/daemon
 DAEMON			= $(DAEMON_DIR)/wakeserverd
 SERVICE_CONF		= /etc/systemd/system/wakeserver.service
+MQTT_CONF		= /etc/mosquitto/mosquitto.conf
 
 WAKEONLAN		= /usr/bin/wakeonlan
 NODEJS			= /usr/bin/nodejs
@@ -23,6 +24,7 @@ HOMEBRIDGE_RUNNER	= /var/www/wakeserver/daemon/homebridge.run
 INSTALL			= install $(INSTALL_OPT)
 INSTALL_OPT		= -o root -g root
 UNCOMMENT		= tool/uncomment
+COMMENT			= tool/comment
 ADDOPTION		= tool/addoption
 EXTJSON			= tool/extjson
 
@@ -41,9 +43,23 @@ SERVERSCONF_SRC		= personal/$(PERSONAL)/servers.conf
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR)
 
+INSTALL_TARGET		= apache2restart daemonrestart avahirestart \
+			  homebridgerestart mqttrestart
+
 all:
 
-install: apache2restart daemonrestart avahirestart homebridgerestart
+install: $(INSTALL_TARGET)
+
+mqttrestart: $(MQTT_CONF)
+	systemctl daemon-reload || exit 1
+	systemctl enable mosquitto || exit 1
+	systemctl restart mosquitto || exit 1
+
+$(MQTT_CONF):
+	apt-get install -y mosquitto
+	apt-get install -y mosquitto-clients
+	mv $(MQTT_CONF) $(MQTT_CONF).bak
+	$(COMMENT) '^log_dest' < $(MQTT_CONF).bak >$(MQTT_CONF) 
 
 avahirestart:
 	m4 -D ID="`$(EXTJSON) $(WAKESERVERCONF_SRC) uuid`"\
