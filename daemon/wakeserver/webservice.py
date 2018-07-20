@@ -142,6 +142,15 @@ def wakeserver_attr_handler(req, resp):
             rdata = {'result':True, 'message':'Succeed', 'value':value}
     resp.replyJson(rdata, 'text/javascript')
 
+def wakeserver_config_handler(req, resp):
+    config = '/var/www/wakeserver/wakeserver.conf'
+    req.parseBody()
+    resp.contentType = 'text/javascript; charset=utf-8'
+    if os.path.isfile(config):
+        resp.replyFile(config, ctype = resp.contentType)
+    else:
+        resp.close()
+
 def serveForever(monitor, plugins):
     global _monitor
     global _plugins
@@ -152,4 +161,6 @@ def serveForever(monitor, plugins):
     server.addHandler('/cgi-bin/wakeserver-', wakeserver_power_handler, True)
     server.addHandler('/cgi-bin/wakeserver-attribute.cgi',
                       wakeserver_attr_handler)
+    server.addHandler('/cgi-bin/wakeserver-config.cgi',
+                      wakeserver_config_handler)
     server.serveForever()
