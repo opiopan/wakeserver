@@ -26,10 +26,15 @@
 		"WiFi AP #3"
 	    ],
 
+	    "ignoreSpecialCapability" : [
+		"TV @living #2",
+		"TV @bed room",
+		"TV @library"
+	    ],
+	    
 	    "accessories": [
 		{
 		    "name": "Living Temperature",
-		    "type": "psensor",
 		    "type": "attribute",
 		    "server": "AV STB #2",
 		    "atype" : "temperature",

@@ -36,6 +36,7 @@ function WSPlatform(log, config) {
     this.config = config;
     this.enableOnlySwitch = config.enableOnlySwitch;
     this.ignoreServers = config.ignoreServers;
+    this.ignoreSpecialCapability = config.ignoreSpecialCapability;
 }
 
 
@@ -50,16 +51,19 @@ WSPlatform.prototype.accessories = function(callback) {
 	    if (this.ignoreServers.indexOf(server.config.name) == -1){
 		var a = new WSAccessory(server);
 		accesories.push(a);
-		if (server.config.scheme.volume){
-		    var a = new WSAccessory(server, 'volume');
-		    accesories.push(a);
-		}
-		if (server.config.scheme.tvchannel){
-		    accesories.push(new WSAccessory(server, 'tvchannel'));
-		    accesories.push(
-			new WSAccessory(server, 'tvband:terrestrial'));
-		    accesories.push(new WSAccessory(server, 'tvband:bs'));
-		    accesories.push(new WSAccessory(server, 'tvband:cs'));
+		if (this.ignoreSpecialCapability.indexOf(server.config.name)
+		    == -1){
+		    if (server.config.scheme.volume){
+			var a = new WSAccessory(server, 'volume');
+			accesories.push(a);
+		    }
+		    if (server.config.scheme.tvchannel){
+			accesories.push(new WSAccessory(server, 'tvchannel'));
+			accesories.push(
+			    new WSAccessory(server, 'tvband:terrestrial'));
+			accesories.push(new WSAccessory(server, 'tvband:bs'));
+			accesories.push(new WSAccessory(server, 'tvband:cs'));
+		    }
 		}
 	    }
 	}
