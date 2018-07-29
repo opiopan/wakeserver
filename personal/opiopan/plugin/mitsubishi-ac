@@ -7,6 +7,7 @@ import re
 import struct
 import subprocess
 import json
+from datetime import datetime
 from math import modf
 from binascii import hexlify
 
@@ -24,7 +25,7 @@ class MitsubishiAC:
 
         def pack(self):
             return self.fix1 + self.power + self.mode + self.temp + self.fix2
-    
+
     MODE_COOLER = 0
     MODE_HEATER = 1
     TEMP_MIN = 16
@@ -55,7 +56,7 @@ class MitsubishiAC:
             b'\x20' if isOn else b'\x00',
             b'\x58' if self.__mode == self.MODE_COOLER else b'\x48',
             struct.pack('B', 
-                        0x10 if decimal != 0 else 0x00 |
+                        (0x10 if decimal != 0 else 0x00) |
                         int((temp - self.TEMP_MIN)))
         )
         data = code.pack()
@@ -71,8 +72,10 @@ class MitsubishiAC:
         host = pat.sub('', self.__name)
         cmd = 'irtx ' + host + ' aeha ' + hexlify(code)
         subprocess.call(cmd, shell=True)
+        now = datetime.now()
         out = {
-            'isOn' : isOn
+            'isOn' : isOn,
+            'datetime' : now.strftime('%Y-%m-%d %H:%M:%S')
         }
         with open(OUTDIR + self.__name, mode='w') as f:
             json.dump(out, f)
@@ -83,6 +86,12 @@ class MitsubishiAC:
             status = json.load(f)
             if 'isOn' in status:
                 rc = status['isOn']
+            if 'datetime' in status:
+                on = datetime.strptime(status['datetime'], '%Y-%m-%d %H:%M:%S')
+                now = datetime.now()
+                thr = datetime(now.year, now.month, now.day, 2)
+                if on < thr:
+                    rc = False
         return rc
 
 def main():
@@ -98,7 +107,16 @@ def main():
         return 0 if ac.diag() else 1;
     
     elif command == 'on':
-        ac.sendCommand(True)
+        now = datetime.now()
+        if now.month >= 5 and now.month <= 10:
+            ac.setMode(ac.MODE_COOLER)
+            ac.setTemperature(26.5)
+            ac.sendCommand(True)
+        elif (now.month >= 11 and now.month <= 12) or \
+             (now.month >= 1 and now.month <=3):
+            ac.setMode(ac.MODE_HEATER)
+            ac.setTemperature(23)
+            ac.sendCommand(True)
         return 0;
 
     elif command == 'off':
