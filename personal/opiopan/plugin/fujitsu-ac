@@ -13,27 +13,27 @@ from binascii import hexlify
 
 OUTDIR = '/var/run/wakeserver/'
 
-class MitsubishiAC:
+class FujitsuAC:
     class Code:
-        fix1 = b'\x23\xcb\x26\x01\x00'
-        fix2 = b'\x02\xc0\x8e\x00\x00\x40\x08\x03\x02'
+        fix1 = b'\x14\x63\x00\x10\x10\xfe\x09\x30'
+        fix2 = b'\x00\x00\x00\x00\x28'
 
-        def __init__(self, power, mode, temp):
-            self.power = power
+        def __init__(self, mode, temp):
             self.mode = mode
             self.temp = temp
 
         def pack(self):
-            return self.fix1 + self.power + self.mode + self.temp + self.fix2
+            return self.fix1 + self.temp + self.mode + self.fix2
 
     MODE_COOLER = 0
     MODE_HEATER = 1
     TEMP_MIN = 16
     TEMP_MAX = 31
+    offCode = b'\x14\x63\x00\x10\x10\x02\xfd'
 
     __name = ''
     __mode = MODE_COOLER
-    __temp = 27
+    __temp = 26
 
     def __init__(self, name):
         self.__name = name
@@ -51,20 +51,24 @@ class MitsubishiAC:
         return True
 
     def serialize(self, isOn):
+        if not isOn :
+            return self.offCode
+        
         decimal, temp = modf(self.__temp)
         code = self.Code(
-            b'\x20' if isOn else b'\x00',
-            b'\x58' if self.__mode == self.MODE_COOLER else b'\x48',
+            b'\x01' if self.__mode == self.MODE_COOLER else b'\x04',
             struct.pack('B', 
-                        (0x10 if decimal != 0 else 0x00) |
-                        int((temp - self.TEMP_MIN)))
+                        0x01 |
+                        (int(temp - self.TEMP_MIN) * 16))
         )
         data = code.pack()
-        sum = 0
+        sumh = 0x370
+        suml = 0x2e
         for c in data:
             num, = struct.unpack('B', c)
-            sum += num
-        return data + struct.pack('B', sum & 0xff)
+            sumh -= num & 0xf0
+            suml -= num & 0xf
+        return data + struct.pack('B', (sumh & 0xf0) | (suml & 0xf))
 
     def sendCommand(self, isOn):
         code = self.serialize(isOn)
@@ -102,7 +106,7 @@ def main():
     macaddr = sys.argv[3]
     interval = int(sys.argv[4])
 
-    ac = MitsubishiAC(ipaddr)
+    ac = FujitsuAC(ipaddr)
 
     if command == 'diag':
         time.sleep(interval)
@@ -112,7 +116,7 @@ def main():
         now = datetime.now()
         if now.month >= 5 and now.month <= 10:
             ac.setMode(ac.MODE_COOLER)
-            ac.setTemperature(26.5)
+            ac.setTemperature(26)
             ac.sendCommand(True)
         elif (now.month >= 11 and now.month <= 12) or \
              (now.month >= 1 and now.month <=3):
