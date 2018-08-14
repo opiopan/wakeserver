@@ -92,12 +92,6 @@ class FujitsuAC:
             status = json.load(f)
             if 'isOn' in status:
                 rc = status['isOn']
-            if 'datetime' in status:
-                on = datetime.strptime(status['datetime'], '%Y-%m-%d %H:%M:%S')
-                now = datetime.now()
-                thr = datetime(now.year, now.month, now.day, 2)
-                if on < thr:
-                    rc = False
         return rc
 
 def main():
