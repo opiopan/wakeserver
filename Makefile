@@ -43,8 +43,11 @@ SERVERSCONF_SRC		= personal/$(PERSONAL)/servers.conf
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR)
 
+PIP			= /usr/local/bin/pip
+PPKGS			= requests
+
 INSTALL_TARGET		= apache2restart daemonrestart avahirestart \
-			  homebridgerestart mqttrestart
+			  homebridgerestart mqttrestart pythonpackage
 
 all:
 
@@ -157,3 +160,9 @@ $(HOMEBRIDGE):
 	npm install --unsafe-perm bignum
 	cd /usr/lib/node_modules/hap-nodejs/node_modules/mdns || exit 1;\
 	node-gyp BUILDTYPE=Release rebuild
+
+pythonpackage: $(PIP)
+	pip install $(PPKGS)
+
+$(PIP):
+	curl -kL https://bootstrap.pypa.io/get-pip.py | python

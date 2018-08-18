@@ -7,6 +7,7 @@ import re
 import struct
 import subprocess
 import json
+import requests
 from datetime import datetime
 from math import modf
 from binascii import hexlify
@@ -83,18 +84,15 @@ class MitsubishiAC:
             json.dump(out, f)
 
     def diag(self):
-        rc = False
-        with open(OUTDIR + self.__name) as f:
-            status = json.load(f)
-            if 'isOn' in status:
-                rc = status['isOn']
-            if 'datetime' in status:
-                on = datetime.strptime(status['datetime'], '%Y-%m-%d %H:%M:%S')
-                now = datetime.now()
-                thr = datetime(now.year, now.month, now.day, 2)
-                if on < thr:
-                    rc = False
-        return rc
+        phost = re.compile(':.*')
+        host = phost.sub('', self.__name)
+        pshadow = re.compile('.*:')
+        shadow = pshadow.sub('', self.__name)
+        response = requests.get('http://' + host + '/shadow/' + shadow)
+        result = response.json()
+        if 'IsOn' in result:
+            return result['IsOn']
+        return False
 
 def main():
     command = sys.argv[1]
