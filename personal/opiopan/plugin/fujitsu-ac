@@ -92,7 +92,8 @@ class FujitsuAC:
         host = phost.sub('', self.__name)
         pshadow = re.compile('.*:')
         shadow = pshadow.sub('', self.__name)
-        response = requests.get('http://' + host + '/shadow/' + shadow)
+        response = requests.get('http://' + host + '/shadow/' + shadow,
+                                timeout = 10)
         result = response.json()
         if 'IsOn' in result:
             return result['IsOn']
