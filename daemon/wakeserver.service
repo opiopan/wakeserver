@@ -1,9 +1,13 @@
 [Unit]
 Description=Surveying server power statement
+After=syslog.target network-online.target
+
 [Service]
+Type=simple
 ExecStart=/var/www/wakeserver/daemon/wakeserverd
-Restart=always
-Type=forking
-PIDFile=/var/run/wakeserverd.pid
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
 [Install]
 WantedBy=multi-user.target

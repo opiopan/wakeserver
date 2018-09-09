@@ -8,6 +8,7 @@ CGI_DIR			= /usr/lib/cgi-bin
 SBIN_DIR		= /var/www/wakeserver/sbin
 PLUGIN_DIR		= /var/www/wakeserver/plugin
 DAEMON_DIR		= /var/www/wakeserver/daemon
+DAEMONLIB_DIR		= $(DAEMON_DIR)/wakeserver
 DAEMON			= $(DAEMON_DIR)/wakeserverd
 SERVICE_CONF		= /etc/systemd/system/wakeserver.service
 MQTT_CONF		= /etc/mosquitto/mosquitto.conf
@@ -76,7 +77,7 @@ avahirestart:
 apache2restart: copyfiles apache2config
 	/etc/init.d/apache2 restart
 
-daemonrestart: $(DAEMON) $(SERVICE_CONF)
+daemonrestart: $(DAEMON) $(SERVICE_CONF) daemonlib
 	systemctl daemon-reload || exit 1
 	systemctl enable wakeserver.service || exit 1
 	systemctl restart wakeserver.service || exit 1
@@ -104,7 +105,7 @@ commands: sbin
 intermediate sbin $(SBIN_DIR):
 	mkdir $@
 
-daemon: $(DAEMON) $(SERVICE_CONF)
+daemon: $(DAEMON) $(SERVICE_CONF) daemonlib
 
 $(DAEMON): daemon/wakeserverd $(DAEMON_DIR)
 	$(INSTALL) -m755 $< $@
@@ -112,7 +113,12 @@ $(DAEMON): daemon/wakeserverd $(DAEMON_DIR)
 $(SERVICE_CONF): daemon/wakeserver.service
 	$(INSTALL) -m644 $< $@
 
-$(HTML_DIR) $(DAEMON_DIR) $(PLUGIN_DIR):
+daemonlib: $(DAEMONLIB_DIR)
+	for f in daemon/wakeserver/*.py; do \
+	    $(INSTALL) -m644 $$f $(DAEMONLIB_DIR) || exit 1; \
+	done
+
+$(HTML_DIR) $(DAEMON_DIR) $(DAEMONLIB_DIR) $(PLUGIN_DIR):
 	$(INSTALL) -d $@
 
 apache2config: $(SITE_CONF_DIR)

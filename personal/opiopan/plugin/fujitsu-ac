@@ -88,16 +88,19 @@ class FujitsuAC:
             json.dump(out, f)
 
     def diag(self):
-        phost = re.compile(':.*')
-        host = phost.sub('', self.__name)
-        pshadow = re.compile('.*:')
-        shadow = pshadow.sub('', self.__name)
-        response = requests.get('http://' + host + '/shadow/' + shadow,
-                                timeout = 10)
-        result = response.json()
-        if 'IsOn' in result:
-            return result['IsOn']
-        return False
+        try:
+            phost = re.compile(':.*')
+            host = phost.sub('', self.__name)
+            pshadow = re.compile('.*:')
+            shadow = pshadow.sub('', self.__name)
+            response = requests.get('http://' + host + '/shadow/' + shadow,
+                                    timeout = 10)
+            result = response.json()
+            if 'IsOn' in result:
+                return result['IsOn']
+            return False
+        except:
+            return False
 
 def main():
     command = sys.argv[1]
@@ -108,7 +111,7 @@ def main():
     ac = FujitsuAC(ipaddr)
 
     if command == 'diag':
-        time.sleep(interval)
+        time.sleep(interval + 2)
         return 0 if ac.diag() else 1;
     
     elif command == 'on':

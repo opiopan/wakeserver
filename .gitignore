@@ -1,4 +1,5 @@
 *.o
+*.pyc
 sbin/
 intermediate/
 node_modules
