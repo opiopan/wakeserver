@@ -10,7 +10,6 @@ import subprocess
 STATUS_FILE =      "/run/wakeserver/status"
 STATUS_FILE_NEW =  "/run/wakeserver/status.new"
 STATUS_FILE_FULL = "/run/wakeserver/status.full"
-PLUGIN_DIR =       "/var/www/wakeserver/plugin"
 INTERVAL =         1
 INTERVAL_WRITE =   2
 OPERATIVE_MAX =    3

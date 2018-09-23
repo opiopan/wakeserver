@@ -5,6 +5,8 @@ import sys
 import time
 import importlib
 
+DEBUG = 'DEBUG' in os.environ
+
 PLUGIN_DIR = "/var/www/wakeserver/plugin.py"
 PLUGIN_OLD_DIR = "/var/www/wakeserver/plugin"
 DIAG_INTERVAL = 1
@@ -13,13 +15,13 @@ class Plugin:
     def diagnose(self, server):
         return False
     
-    def setPower(self, server, isOn):
+    def setPower(self, server, isOn, needReboot = False):
         return False, "This plugin object is not concrete object"
 
     def attribute(self, server, name, value):
         return False, "This plugin object is not concrete object"
 
-class OldPlugin(Plugin):
+class _OldPlugin(Plugin):
     def __init__(self, name):
         self.name = name
         
@@ -38,33 +40,75 @@ class OldPlugin(Plugin):
         except:
             print "OldPlugin(" + self.name + ") raise exception"
             return False
-        return False
 
+class _Proxy(Plugin):
+    def __init__(self, name, obj):
+        self.name = name
+        self.origin = obj
+        
+    def diagnose(self, server):
+        if DEBUG:
+            return self.origin.diagnose(server)
+        try:
+            return self.origin.diagnose(server)
+        except:
+            print "Plugin(" + self.name + ") raise exception"
+            return False
+
+    def setPower(self, server, isOn, needReboot = False):
+        if DEBUG:
+            return self.origin.setPower(server, isOn, needReboot)
+        try:
+            return self.origin.setPower(server, isOn, needReboot)
+        except:
+            msg = "Plugin(" + self.name + ") raise exception"
+            print msg
+            return False, msg
+
+    def attribute(self, server, name, value):
+        if DEBUG:
+            return self.origin.attribute(server, name, value)
+        try:
+            return self.origin.attribute(server, name, value)
+        except:
+            msg = "Plugin(" + self.name + ") raise exception"
+            print msg
+            return False, msg
+    
 class PluginPool:
     def __init__(self, conf):
         self.conf = conf
-        self.debug = 'DEBUG' in os.environ
 
         pluginDir = PLUGIN_DIR
         if 'PLUGIN' in os.environ:
             pluginDir = os.environ['PLUGIN']
 
+        sys.path.append(pluginDir)
+
         self.plugins = {}
         if os.path.isdir(pluginDir):
             files = os.listdir(pluginDir)
             for fname in files:
-                name, ext = os.path.splitext(file)
+                name, ext = os.path.splitext(fname)
                 if ext == '.py':
+                    def loadModule():
+                        module = importlib.import_module(name)
+                        plugins = module.wakeserverPlugin(self.conf)
+                        for (pname, plugin) in plugins:
+                            self.plugins[pname] = _Proxy(pname, plugin)
+                            print pname
+                    
+                    if DEBUG:
+                        loadModule()
+                        continue
                     try:
-                        module = importlib.import_module(pluginDir +
-                                                         '/' + fname)
-                        plugin = module.wakeserverPlugin(self.conf)
-                        self.plugins[name] = plugin
+                        loadModule()
                     except:
                         print 'Initializing a plugin failed: ' + name
         if os.path.isdir(PLUGIN_OLD_DIR):
             files = os.listdir(PLUGIN_OLD_DIR)
             for fname in files:
-                self.plugins[fname] = OldPlugin(fname)
+                self.plugins[fname] = _OldPlugin(fname)
+                print fname
 
         print str(len(self.plugins)) + ' plugins loaded'

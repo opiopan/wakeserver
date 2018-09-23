@@ -20,6 +20,7 @@ def daemonize(inDebug):
 
     if not os.path.isdir(STATUS_DIR):
         os.mkdir(STATUS_DIR)
+        os.chmod(STATUS_DIR, 0777)
     if not inDebug:
         sys.stdin.close()
         sys.stdout.close()
