@@ -4,6 +4,7 @@ import urlparse
 import cgi
 import json
 import os
+from email import utils
 
 CONTENT_TYPES = {
     ".html": "text/html",
@@ -73,12 +74,15 @@ class Response:
         self.contentLength = -1
         self.body = ''
         self.phase = Response.Phase.initial
+        self.time = None
 
     def replyHeader(self):
         if self.phase != Response.Phase.initial:
             return
         self.handler.send_response(self.rcode)
         self.handler.send_header('Content-Type', self.contentType)
+        if self.time:
+            self.handler.send_header('Date', utils.formatdate(self.time))
         for key in self.headers:
             self.handler.send_header(key, self.headers[key])
         if self.contentLength >= 0:
@@ -110,6 +114,7 @@ class Response:
                                    if ext in CONTENT_TYPES \
                                       else GEN_CONTENT_TYPE
             self.contentLength = os.path.getsize(path) if not onlyHeader else 0
+            self.time = os.stat(path).st_mtime
             self.replyHeader()
             if onlyHeader:
                 return
