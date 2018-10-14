@@ -6,6 +6,11 @@ import time
 import re
 import json
 import requests
+import importlib
+
+sys.path.append('/var/www/wakeserver/daemon')
+sys.path.append('/var/www/wakeserver/plugin.py')
+elflet = importlib.import_module('elflet-shadow')
 
 def main():
     command = sys.argv[1]
@@ -13,13 +18,20 @@ def main():
     macaddr = sys.argv[3]
     interval = int(sys.argv[4])
 
+    nname, sname = elflet.getNodeNameAndShadowName(ipaddr)
+    shadow = elflet.ElfletShadow(nname, sname)
+    
     if command == 'diag':
         return False
     
     elif command == 'on':
+        shadow.power = True
+        shadow.issueIRCommand()
         return 0;
 
     elif command == 'off':
+        shadow.power = False
+        shadow.issueIRCommand()
         return 0;
     
     return 1
