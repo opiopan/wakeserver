@@ -32,11 +32,12 @@ class _OldPlugin(Plugin):
                    self.name,
                    server["ipaddr"], server["macaddr"],
                    DIAG_INTERVAL)
-            if os.system(cmd) == 0 :
-                time.sleep(DIAG_INTERVAL)
-                return True;
-            else:
-                return False;
+            btime = time.time()
+            rc = os.system(cmd) == 0
+            interval = time.time() - btime
+            if interval < DIAG_INTERVAL:
+                time.sleep(DIAG_INTERVAL - interval)
+            return rc
         except:
             print "OldPlugin(" + self.name + ") raise exception"
             return False
@@ -48,9 +49,19 @@ class _Proxy(Plugin):
         
     def diagnose(self, server):
         if DEBUG:
-            return self.origin.diagnose(server)
+            btime = time.time()
+            rc = self.origin.diagnose(server)
+            interval = time.time() - btime
+            if interval < DIAG_INTERVAL:
+                time.sleep(DIAG_INTERVAL - interval)
+            return rc
         try:
-            return self.origin.diagnose(server)
+            btime = time.time()
+            rc = self.origin.diagnose(server)
+            interval = time.time() - btime
+            if interval < DIAG_INTERVAL:
+                time.sleep(DIAG_INTERVAL - interval)
+            return rc
         except:
             print "Plugin(" + self.name + ") raise exception"
             return False
@@ -105,10 +116,12 @@ class PluginPool:
                         loadModule()
                     except:
                         print 'Initializing a plugin failed: ' + name
+                        
         if os.path.isdir(PLUGIN_OLD_DIR):
             files = os.listdir(PLUGIN_OLD_DIR)
             for fname in files:
-                self.plugins[fname] = _OldPlugin(fname)
-                print fname
+                if not fname in self.plugins:
+                    self.plugins[fname] = _OldPlugin(fname)
+                    print fname
 
         print str(len(self.plugins)) + ' plugins loaded'

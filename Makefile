@@ -45,7 +45,7 @@ COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR)
 
 PIP			= /usr/local/bin/pip
-PPKGS			= requests
+PPKGS			= requests paho-mqtt
 
 INSTALL_TARGET		= apache2restart daemonrestart avahirestart \
 			  homebridgerestart mqttrestart pythonpackage

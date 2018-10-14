@@ -3,16 +3,38 @@
 import os
 import sys
 import signal
+import re
 import time
 import json
 import requests
+import threading
+import paho.mqtt.client as mqtt
 from wakeserver import monitoring, plugin
 
-PLUGIN_NAME = "elflet-shadow"
+SHADOW_PLUGIN_NAME = "elflet-shadow"
+MQTT_PORT = 1883
+MQTT_KEEPALIVE = 60
 TOPIC = "elflet/shadow"
 HTTPTIMEOUT = 10
-_shadwos = {}
+DIAG_INTERVAL = 10*60
 
+_shadows = {}
+_observer = None
+_subscriber = None
+
+#---------------------------------------------------------------------
+# utility functions
+#---------------------------------------------------------------------
+def getNodeNameAndShadowName(addr):
+    phost = re.compile(':.*')
+    host = phost.sub('', addr)
+    pshadow = re.compile('.*:')
+    shadow = pshadow.sub('', addr)
+    return host, shadow
+    
+#---------------------------------------------------------------------
+# shadow representation class
+#---------------------------------------------------------------------
 class ElfletShadow:
     def __init__(self, nodeName, shadowName, power = False, attrs = None):
         self.nodeName = nodeName
@@ -20,40 +42,129 @@ class ElfletShadow:
         self.power = power
         self.attrs = attrs
 
-    def updateStaus(self, power, attrs):
-        self.power = power
-        self.attrs = attrs
-
+    def updateStatus(self, data):
+        if "IsOn" in data:
+            self.power = data["IsOn"]
+            print 'change shadow to {0}'.format(self.power)
+        if "Attributes" in data:
+            self.attrs =data["Attributes"]
     def url(self):
-        return "http://" + self.nodeName + "/" + self.shadowName
+        return "http://" + self.nodeName + "/shadow/" + self.shadowName
 
     def issueIRCommand(self):
         body = {"IsOn": self.power, "Attributes": self.attrs}
-        req = requests.Request(self.url(), method = "POST",
-                               json = body,
-                               tiemout = HTTPTIMEOUT)
-        with requests.urlopen(req) as response:
-            if response.status_code == requests.codes.ok:
+        try:
+            resp = requests.post(self.url(),
+                                 json = body,
+                                 timeout = HTTPTIMEOUT)
+            if resp.status_code == requests.codes.ok:
                 return True, None
             else:
                 return False, response.read().decode("utf-8")
-        return False, "fail to POST request to " + self.url()
+        except:
+            return False, "fail to POST request to " + self.url()
 
     def diagnose(self):
-        req = requests.Request(self.url(), method = "GET",
-                               tiemout = HTTPTIMEOUT)
-        with requests.urlopen(req) as response:
-            return response.json()
-        return None
+        try:
+            resp = requests.get(self.url(), timeout = HTTPTIMEOUT)
+            return resp.json()
+        except:
+            return None
 
-class Observer:
-    def __init__(self, conf):
-        a = 0
+#---------------------------------------------------------------------
+# mqtt subscriber
+#---------------------------------------------------------------------
+def on_connect(client, userdata, flags, rc):
+    print 'mqtt: connected as code {0}'.format(rc)
+    client.subscribe(client.topic)
+
+def on_subscribe(client, userdata, mid, granted_qos):
+    print 'mqtt: accepted subscribe topic: {0}'.format(client.topic)
     
+def on_message(client, userdata, msg):
+    global _shadows
+    data = json.loads(msg.payload)
+    nodeName = data['NodeName']
+    shadowName = data['ShadowName']
+    name = nodeName + '.local:' + shadowName
+    if not name in _shadows:
+        print 'mqtt: unmanaged shadow: {0}'.format(name)
+        _shadows[name] = ElfletShadow(nodeName, shadowName)
+    _shadows[name].updateStatus(data)
+    print 'mqtt: message from {0}'.format(name)
+
+class Subscriber(threading.Thread):
+    def __init__(self, conf):
+        super(Subscriber, self).__init__()
+        self.conf = conf
+
+    def run(self):
+        client = mqtt.Client(protocol=mqtt.MQTTv311)
+        client.topic = TOPIC
+        client.on_connect = on_connect
+        client.on_subscribe = on_subscribe
+        client.on_message = on_message
+        client.connect('localhost', port=MQTT_PORT, keepalive=MQTT_KEEPALIVE)
+
+        client.loop_forever()
+        
+#---------------------------------------------------------------------
+# observer thread
+#---------------------------------------------------------------------
+class Observer(threading.Thread):
+    def __init__(self, conf):
+        global _shadows
+        super(Observer, self).__init__()
+        self.conf = conf
+        print 'detected shadows:'
+        for group in self.conf.servers:
+            for server in group["servers"]:
+                if server["scheme"]["type"] == SHADOW_PLUGIN_NAME:
+                    name = server["ipaddr"]
+                    node, shadow = getNodeNameAndShadowName(name)
+                    _shadows[name] = ElfletShadow(node, shadow)
+                    print '    ' + name
+        
+    def run(self):
+        global _shadows
+        while True:
+            for name in _shadows.keys():
+                print 'checking ' + name
+                data = _shadows[name].diagnose()
+                if data != None:
+                    _shadows[name].updateStatus(data)
+                    print data['IsOn']
+            time.sleep(DIAG_INTERVAL)
+    
+#---------------------------------------------------------------------
+# elflet shadow plugin imprementation
+#---------------------------------------------------------------------
 class ElfletShadowPlugin(plugin.Plugin):
     def __init__(self, conf):
         self.conf = conf
 
+    def diagnose(self, server):
+        global _shadows
+        name = server["ipaddr"]
+        if name in _shadows:
+            power = _shadows[name].power
+            return power
+        return False
+
+        
+#---------------------------------------------------------------------
+# plugin entry point
+#---------------------------------------------------------------------
 def wakeserverPlugin(conf):
+    global _observer
+    global _subscriber
     
-    return [(PLUGIN_NAME, ElfletShadowPlugin(conf))]
+    if  _observer == None:
+        _observer = Observer(conf)
+        _observer.start()
+
+    if _subscriber == None:
+        _subscriber = Subscriber(conf)
+        _subscriber.start()
+        
+    return [(SHADOW_PLUGIN_NAME, ElfletShadowPlugin(conf))]

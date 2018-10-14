@@ -32,6 +32,11 @@ def daemonize(inDebug):
     return True
 
 def main():
+    global SERVERS_CONF
+    if 'SERVERS_CONF' in os.environ:
+        SERVERS_CONF = os.environ['SERVERS_CONF']
+    print 'SERVERS_CONF: ' + SERVERS_CONF
+    
     if daemonize('DEBUG' in os.environ):
         conf = namedtuple('Config', ('main', 'servers'))
         with open(MAIN_CONF) as f:

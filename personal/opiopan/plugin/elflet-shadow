@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+import sys
+import os
+import time
+import re
+import json
+import requests
+
+def main():
+    command = sys.argv[1]
+    ipaddr = sys.argv[2]
+    macaddr = sys.argv[3]
+    interval = int(sys.argv[4])
+
+    if command == 'diag':
+        return False
+    
+    elif command == 'on':
+        return 0;
+
+    elif command == 'off':
+        return 0;
+    
+    return 1
+
+if __name__ == '__main__':
+    sys.exit(main())
