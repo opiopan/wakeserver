@@ -70,7 +70,7 @@ class _OldPlugin(Plugin):
             return None
         for key in keys:
             value = self.execPlugin(server, 'attribute', key = key)
-            return {key : value}
+            return {key : value.replace('\n', '')}
 
 class _Proxy(Plugin):
     def __init__(self, name, obj):
