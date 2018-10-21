@@ -44,16 +44,19 @@ class Request:
     def parseBody(self):
         self.body = ''
         self.json = None
-        ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
+        ctype, pdict = '', ''
+        if 'Content-Type' in self.headers:
+            ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
         if ctype == 'multipart/form-data':
             self.params = cgi.parse_multipart(self.rfile, pdict)
         else:
-            length = int(self.headers['Content-Length'])
-            self.body = self.rfile.read(length)
-            if ctype == 'application/x-www-form-urlencoded':
-                self.params = urlparse.parse_qs(self.body)
-            elif ctype == 'application/json':
-                self.json = json.loads(self.body)
+            if 'Content-Length' in self.headers:
+                length = int(self.headers['Content-Length'])
+                self.body = self.rfile.read(length)
+                if ctype == 'application/x-www-form-urlencoded':
+                    self.params = urlparse.parse_qs(self.body)
+                elif ctype == 'application/json':
+                    self.json = json.loads(self.body)
 
 class Response:
     class Phase:
@@ -91,17 +94,21 @@ class Response:
         self.wfile.write(self.body)
         self.phase = Response.Phase.done
         
-    def replyJson(self, obj):
-        self.body = dumps(obj)
-        self.contentType = 'application/json'
+    def replyJson(self, obj, ctype = None):
+        self.body = json.dumps(obj)
+        self.contentType = ctype if ctype else 'application/json'
         self.close()
 
-    def replyFile(self, path, onlyHeader = False):
+    def replyFile(self, path, onlyHeader = False, ctype = None):
         if os.path.isfile(path):
             base, ext = os.path.splitext(path)
             ext = ext.lower()
-            self.contentType = CONTENT_TYPES[ext] if ext in CONTENT_TYPES \
-                               else GEN_CONTENT_TYPE
+            if ctype:
+                self.contentType = ctype
+            else:
+                self.contentType = CONTENT_TYPES[ext] \
+                                   if ext in CONTENT_TYPES \
+                                      else GEN_CONTENT_TYPE
             self.contentLength = os.path.getsize(path) if not onlyHeader else 0
             self.replyHeader()
             if onlyHeader:

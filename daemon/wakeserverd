@@ -6,7 +6,7 @@ import signal
 import time
 import json
 from collections import namedtuple
-from wakeserver import monitoring, plugin
+from wakeserver import monitoring, plugin, webservice
 
 PIDFILE =          "/run/wakeserverd.pid"
 STATUS_DIR =       "/run/wakeserver"
@@ -46,10 +46,15 @@ def main():
             conf.servers = json.load(f)
 
         pool = plugin.PluginPool(conf)
-        daemon = monitoring.Monitor(conf, pool)
-        daemon.run()
+
+        monitor = monitoring.Monitor(conf, pool)
+        monitor.start()
+
+        webservice.serveForever(monitor, pool)
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, lambda sig, frame: sys.exit(1))
+    def sigintHandler(signal, frame):
+        quit()
+    signal.signal(signal.SIGINT, sigintHandler)
     main()
     sys.exit(0)

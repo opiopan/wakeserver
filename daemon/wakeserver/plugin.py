@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import importlib
+import subprocess
 
 DEBUG = 'DEBUG' in os.environ
 
@@ -15,32 +16,61 @@ class Plugin:
     def diagnose(self, server):
         return False
     
-    def setPower(self, server, isOn, needReboot = False):
-        return False, "This plugin object is not concrete object"
+    def setStatus(self, server, isOn = None, needReboot = False, attrs = None):
+        return False
 
-    def attribute(self, server, name, value):
-        return False, "This plugin object is not concrete object"
+    def getAttrs(self, server, keys = None):
+        return None
 
 class _OldPlugin(Plugin):
     def __init__(self, name):
         self.name = name
+
+    def execPlugin(self, server, cmd, interval = 0, key = None, value = None):
+        args = [PLUGIN_OLD_DIR + '/' + self.name,
+                cmd,
+                server["ipaddr"], server["macaddr"],
+                str(interval)]
+        if key:
+            args += [key]
+            if value:
+                args += [value]
+        try:
+            #if cmd != 'diag':
+            #    print 'args: {0}'.format(args)
+            return subprocess.check_output(args)
+        except:
+            return None
         
     def diagnose(self, server):
-        try:
-            cmd = "%s/%s diag '%s' '%s' %d" % \
-                  (PLUGIN_OLD_DIR, 
-                   self.name,
-                   server["ipaddr"], server["macaddr"],
-                   DIAG_INTERVAL)
-            btime = time.time()
-            rc = os.system(cmd) == 0
-            interval = time.time() - btime
-            if interval < DIAG_INTERVAL:
-                time.sleep(DIAG_INTERVAL - interval)
-            return rc
-        except:
-            print "OldPlugin(" + self.name + ") raise exception"
+        btime = time.time()
+        rc = self.execPlugin(server, 'diag', DIAG_INTERVAL)
+        interval = time.time() - btime
+        if interval < DIAG_INTERVAL:
+            time.sleep(DIAG_INTERVAL - interval)
+        return rc != None
+
+    def setStatus(self, server, isOn = None, needReboot = False, attrs = None):
+        if isOn != None and attrs != None:
             return False
+        if isOn != None:
+            cmd = 'on'
+            if not isOn:
+                cmd = 'off' if not needReboot else 'reboot'
+            return self.execPlugin(server, cmd) != None
+        elif attrs != None and len(attrs) == 1:
+            for key in attrs:
+                return self.execPlugin(server, 'attribute',
+                                       key = key, value = attrs[key]) != None
+        else:
+            return False
+
+    def getAttrs(self, server, keys = None):
+        if keys == None or len(keys) != 1:
+            return None
+        for key in keys:
+            value = self.execPlugin(server, 'attribute', key = key)
+            return {key : value}
 
 class _Proxy(Plugin):
     def __init__(self, name, obj):
@@ -48,43 +78,40 @@ class _Proxy(Plugin):
         self.origin = obj
         
     def diagnose(self, server):
+        def proc():
+            btime = time.time()
+            rc = self.origin.diagnose(server)
+            interval = time.time() - btime
+            if interval < DIAG_INTERVAL:
+                time.sleep(DIAG_INTERVAL - interval)
+            return rc
         if DEBUG:
-            btime = time.time()
-            rc = self.origin.diagnose(server)
-            interval = time.time() - btime
-            if interval < DIAG_INTERVAL:
-                time.sleep(DIAG_INTERVAL - interval)
-            return rc
+            return proc()
         try:
-            btime = time.time()
-            rc = self.origin.diagnose(server)
-            interval = time.time() - btime
-            if interval < DIAG_INTERVAL:
-                time.sleep(DIAG_INTERVAL - interval)
-            return rc
+            return proc()
         except:
             print "Plugin(" + self.name + ") raise exception"
             return False
 
-    def setPower(self, server, isOn, needReboot = False):
+    def setStatus(self, server, isOn = None, needReboot = False, attrs = None):
         if DEBUG:
-            return self.origin.setPower(server, isOn, needReboot)
+            return self.origin.setStatus(server, isOn, needReboot, attrs)
         try:
-            return self.origin.setPower(server, isOn, needReboot)
+            return self.origin.setStatus(server, isOn, needReboot, attrs)
         except:
             msg = "Plugin(" + self.name + ") raise exception"
             print msg
-            return False, msg
+            return False
 
-    def attribute(self, server, name, value):
+    def getAttrs(self, server, keys = None):
         if DEBUG:
-            return self.origin.attribute(server, name, value)
+            return self.origin.getAttrs(server, keys)
         try:
-            return self.origin.attribute(server, name, value)
+            return self.origin.getAttrs(server, keys)
         except:
             msg = "Plugin(" + self.name + ") raise exception"
             print msg
-            return False, msg
+            return None
     
 class PluginPool:
     def __init__(self, conf):

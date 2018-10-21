@@ -74,10 +74,10 @@ avahirestart:
 	   avahi/wakeserver.service > /etc/avahi/services/wakeserver.service
 	service avahi-daemon restart
 
-apache2restart: copyfiles apache2config
-	/etc/init.d/apache2 restart
+apache2restart:
+	tool/uninstallapacheenv
 
-daemonrestart: $(DAEMON) $(SERVICE_CONF) daemonlib
+daemonrestart: copyfiles $(DAEMON) $(SERVICE_CONF) daemonlib
 	systemctl daemon-reload || exit 1
 	systemctl enable wakeserver.service || exit 1
 	systemctl restart wakeserver.service || exit 1
@@ -91,11 +91,7 @@ homebridge-service: $(HOMEBRIDGE_SERVICE) $(HOMEBRIDGE_DEFAULT) $(HOMEBRIDGE_RUN
 
 
 copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
-	cp apache-conf/wakeserver.conf $(SITE_CONF_DIR) || exit 1
 	cp -R html/* $(HTML_DIR) || exit 1
-	for f in $(CGIS);do \
-	    $(INSTALL) -m755 cgi-bin/$$f $(CGI_DIR)/$$f || exit 1; \
-	done
 	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
 	cp -R personal/$(PERSONAL)/* $(BASE_DIR) || exit 1
 
@@ -120,18 +116,6 @@ daemonlib: $(DAEMONLIB_DIR)
 
 $(HTML_DIR) $(DAEMON_DIR) $(DAEMONLIB_DIR) $(PLUGIN_DIR):
 	$(INSTALL) -d $@
-
-apache2config: $(SITE_CONF_DIR)
-	mv $(PORTS_CONF) $(PORTS_CONF).bak || exit 1
-	grep -v ' 8080$$' $(PORTS_CONF).bak > $(PORTS_CONF) || exit 1
-	echo 'Listen 8080' >> $(PORTS_CONF) || exit 1
-	mv $(MIME_CONF) $(MIME_CONF).bak || exit 1
-	cat $(MIME_CONF).bak | $(UNCOMMENT) '\.cgi$$' > $(MIME_CONF) || exit 1
-	a2enmod cgi || exit 1
-	a2ensite wakeserver || exit 1
-
-$(SITE_CONF_DIR):
-	apt-get -y install apache2
 
 $(WAKEONLAN):
 	apt-get -y install wakeonlan

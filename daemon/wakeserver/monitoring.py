@@ -15,11 +15,14 @@ INTERVAL_WRITE =   2
 OPERATIVE_MAX =    3
 NORMAL_MAX =       7
 
-class Monitor :
+class Monitor(threading.Thread) :
     def __init__(self, conf, pool):
+        super(Monitor, self).__init__()
         self.conf = conf.servers
         self.plugins = pool.plugins
         self.servers = []
+        self.serversDict = {}
+        self.serversDictOrg = {}
         self.statuses = []
         self.operativeServers = []
         self.normalServers = []
@@ -29,6 +32,11 @@ class Monitor :
             servers = group["servers"];
             for server in servers:
                 self.servers.append(server)
+                self.serversDict[server['name']] = server
+                newserver = dict(server)
+                newserver['scheme'] = dict(server['scheme']) \
+                                      if 'scheme' in server else {}
+                self.serversDictOrg[server['name']] = newserver
                 if "user" in server["scheme"]:
                     del server["scheme"]["user"]
                 if "diag" in server["scheme"]:

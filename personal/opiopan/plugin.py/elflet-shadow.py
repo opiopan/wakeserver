@@ -151,7 +151,34 @@ class ElfletShadowPlugin(plugin.Plugin):
             return power
         return False
 
-        
+    def setStatus(self, server, isOn = None, needReboot = False, attrs = None):
+        global _shadows
+        name = server["ipaddr"]
+        if name in _shadows:
+            shadow = _shadows[name]
+            if isOn != None:
+                shadow.power = isOn
+            if attrs != None:
+                shadow.attrs = attrs
+            shadow.issueIRCommand()
+            return True
+        return False
+
+    def getAttrs(self, server, keys = None):
+        global _shadows
+        name = server["ipaddr"]
+        if name in _shadows:
+            attrs = _shadows[name].attrs
+            if keys and len(keys) > 0:
+                res = {}
+                for key in keys:
+                    if key in attrs:
+                        res[key] = attrs[key]
+                return res
+            else:
+                return attrs
+        return None
+    
 #---------------------------------------------------------------------
 # plugin entry point
 #---------------------------------------------------------------------

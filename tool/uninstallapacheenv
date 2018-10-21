@@ -1,0 +1,16 @@
+#!/bin/sh
+
+PORTS_CONF=/etc/apache2/ports.conf
+
+if [ -f /etc/apache2/sites-enabled/wakeserver.conf ];then
+    a2dissite wakeserver || exit 1
+fi
+
+if [ -f $PORTS_CONF ];then
+    mv ${PORTS_CONF} ${PORTS_CONF}.bak || exit 1
+    grep -v ' 8080$' ${PORTS_CONF}.bak > ${PORTS_CONF} || exit 1
+fi
+
+if [ -f /etc/init.d/apache2 ];then
+    /etc/init.d/apache2 restart
+fi
