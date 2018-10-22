@@ -1,10 +1,11 @@
 from BaseHTTPServer import HTTPServer
 from BaseHTTPServer import BaseHTTPRequestHandler
+from SocketServer import ThreadingMixIn
 import urlparse
 import cgi
 import json
 import os
-from email import utils
+import time
 
 CONTENT_TYPES = {
     ".html": "text/html",
@@ -67,6 +68,7 @@ class Response:
         
     def __init__(self, handler):
         self.handler = handler
+        self.handler.timestamp = None
         self.wfile = self.handler.wfile
         self.rcode = 200
         self.contentType = 'text/plain'
@@ -74,15 +76,12 @@ class Response:
         self.contentLength = -1
         self.body = ''
         self.phase = Response.Phase.initial
-        self.time = None
 
     def replyHeader(self):
         if self.phase != Response.Phase.initial:
             return
         self.handler.send_response(self.rcode)
         self.handler.send_header('Content-Type', self.contentType)
-        if self.time:
-            self.handler.send_header('Date', utils.formatdate(self.time))
         for key in self.headers:
             self.handler.send_header(key, self.headers[key])
         if self.contentLength >= 0:
@@ -114,7 +113,7 @@ class Response:
                                    if ext in CONTENT_TYPES \
                                       else GEN_CONTENT_TYPE
             self.contentLength = os.path.getsize(path) if not onlyHeader else 0
-            self.time = os.stat(path).st_mtime
+            self.handler.timestamp = os.stat(path).st_mtime
             self.replyHeader()
             if onlyHeader:
                 return
@@ -135,8 +134,13 @@ class Response:
         self.close()
 
 class RequestHandler(BaseHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'
     env = None
 
+    def date_time_string(self, timestamp = None):
+        ts = self.timestamp if self.timestamp else time.time()
+        return BaseHTTPRequestHandler.date_time_string(self, ts)
+    
     def invokeHandler(self, method):
         req = Request(self.rfile, method, self.path, self.headers)
         resp = Response(self)
@@ -167,6 +171,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         self.invokeHandler(Method.delete)
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
         
 class Server:
     def __init__(self, port = 80, baseDir = None):
@@ -191,5 +198,5 @@ class Server:
 
     def serveForever(self):
         RequestHandler.env = self
-        server = HTTPServer(('', self.port), RequestHandler)
+        server = ThreadedHTTPServer(('', self.port), RequestHandler)
         server.serve_forever()
