@@ -109,9 +109,9 @@ var userAgent = (function(u){
 			$('<p/>').appendTo($description).
 			    append(server.comment);
 			$('<p/>').appendTo($description)
-			    .append('IP: ' + server.ipaddr);
+			    .append('Addr: ' + server.ipaddr);
 			$('<p/>').appendTo($description)
-			    .append('MAC: ' + server.macaddr);
+			    .append('ID: ' + server.macaddr);
 
 			$node.find('.icon span').css({
 			    'background-image': "url('" + server.icon + "')"

@@ -19,6 +19,7 @@
 
 	    "ignoreServers" : [
 		"Home router",
+		"Phone adapter",
 		"L2 switch #1",
 		"L2 switch #2",
 		"WiFi AP #1",
