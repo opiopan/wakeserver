@@ -116,7 +116,7 @@ class Observer(threading.Thread):
         global _shadows
         super(Observer, self).__init__()
         self.conf = conf
-        print 'detected shadows:'
+        print 'elflet: detected shadows:'
         for group in self.conf.servers:
             for server in group["servers"]:
                 if server["scheme"]["type"] == SHADOW_PLUGIN_NAME:

@@ -11,6 +11,6 @@ if [ -f $PORTS_CONF ];then
     grep -v ' 8080$' ${PORTS_CONF}.bak > ${PORTS_CONF} || exit 1
 fi
 
-if [ -f /etc/init.d/apache2 ];then
+if [ -f /etc/init.d/apache2 ] && /etc/init.d/apache2 status;then
     /etc/init.d/apache2 restart
 fi
