@@ -110,12 +110,11 @@ def diagServers(servers, statuses, targets, interval, groupNum, current,
                 continue
             
             if diag == "ping" or diag == "arp":
-                cmd = "ping -c1 -W%d %s >/dev/null" % \
-                    (interval, server["ipaddr"])
+                cmd = ['ping', '-c1', '-W%d' % (interval), server['ipaddr']]
                 arp = "arp %s | tail -1" % (server["ipaddr"])
 
             if cmd != "":
-                if os.system(cmd) == 0 :
+                if subprocess.call(cmd) == 0 :
                     server["status"] = "on"
                     status["status"] = "on"
                     time.sleep(interval)
