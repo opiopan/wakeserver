@@ -114,11 +114,12 @@ def diagServers(servers, statuses, targets, interval, groupNum, current,
                 arp = "arp %s | tail -1" % (server["ipaddr"])
 
             if cmd != "":
-                if subprocess.call(cmd) == 0 :
+                try:
+                    subprocess.check_output(cmd)
                     server["status"] = "on"
                     status["status"] = "on"
                     time.sleep(interval)
-                else:
+                except:
                     active = False
                     if diag == "arp" and \
                             subprocess.check_output(arp, shell = True).\

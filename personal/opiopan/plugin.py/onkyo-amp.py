@@ -23,6 +23,8 @@ SELECTOR_KEY = "selector"
 LOG             = '/run/wakeserver/onkyo-amp.status.new'
 LOG_ORG         = '/run/wakeserver/onkyo-amp.status'
 
+DEBUG = 'DEBUG' in os.environ
+
 #---------------------------------------------------------------------
 # ISCP packet encoder/decoder
 #---------------------------------------------------------------------
@@ -74,8 +76,8 @@ class Command:
         elif kind == ATTR.selector:
             self.value = int(value, 16)
         else:
-            self.kind = Null
-            self.value = Null
+            self.kind = None
+            self.value = None
 
     def serialize(self):
         if self.value:
@@ -136,6 +138,10 @@ class Reciever(threading.Thread):
                     data = data[pos:]
                     pos = 0
 
+        if DEBUG:
+            proc()
+            return
+                    
         try:
             proc()
         except:
@@ -196,7 +202,6 @@ class Controller(threading.Thread):
         self.resetEvent.clear()
         self.sender = None
         self.reciever = None
-        self.logged = False
 
     def resetConnection(self):
         self.sockError = True
@@ -215,20 +220,20 @@ class Controller(threading.Thread):
         elif cmd.kind == ATTR.selector:
             print 'ISCP: selector = {0}'.format(cmd.value)
             self.selector = cmd.value
-            if not self.logged:
-                self.updateLog()
+            self.updateLog()
 
     def updateLog(self):
-        if (not self.power) or (not self.selector):
+        if self.power == None or self.selector == None:
             return
         
         with open(LOG, 'w') as log:
             if self.power:
                 print >> log, 'on !1SLI{:02X}'.format(self.selector)
+                print 'ISCP: on -> log'
             else:
                 print >> log, 'off'
+                print 'ISCP: off -> log'
         os.rename(LOG, LOG_ORG)
-        self.logged = True
 
     def setStatus(self, power = None, volume = None, selector = None):
         if not self.sender:
