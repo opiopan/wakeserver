@@ -136,7 +136,7 @@ def wakeserver_attr_handler(req, resp):
             rc = plugin.setStatus(server, attrs = {key:value})
         else:
             attrs = plugin.getAttrs(server, [key])
-            value = attrs[key] if attrs and key in attrs else None
+            value = str(attrs[key]) if attrs and key in attrs else None
             rc = bool(value)
         if rc:
             rdata = {'result':True, 'message':'Succeed', 'value':value}
