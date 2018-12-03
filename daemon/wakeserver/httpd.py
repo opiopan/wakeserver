@@ -2,6 +2,7 @@ from BaseHTTPServer import HTTPServer
 from BaseHTTPServer import BaseHTTPRequestHandler
 from SocketServer import ThreadingMixIn
 import urlparse
+import urllib
 import cgi
 import json
 import os
@@ -37,13 +38,16 @@ class Request:
         self.headers = headers
         self.url = url
         parsed = urlparse.urlparse(self.url)
-        self.path = parsed.path
+        self.path = urllib.unquote(parsed.path)
         self.query = parsed.query
         self.params = urlparse.parse_qs(parsed.query)
         self.body = ''
         self.json = None
+        self.isParsed = False
 
     def parseBody(self):
+        if self.isParsed:
+            return
         self.body = ''
         self.json = None
         ctype, pdict = '', ''
@@ -136,6 +140,7 @@ class Response:
 class RequestHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
     env = None
+    timestamp = None
 
     def date_time_string(self, timestamp = None):
         ts = self.timestamp if self.timestamp else time.time()

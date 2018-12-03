@@ -24,44 +24,37 @@ def getServer(req):
              else None
     return server, scheme, plugin
 
-def wakeserver_get_handler(req, resp):
-    req.parseBody()
-    if 'type' in req.params and req.params['type'] == ['full']:
-        resp.replyFile('/var/run/wakeserver/status.full',
-                       ctype = 'text/javascript')
-    else:
-        resp.replyFile('/var/run/wakeserver/status',
-                       ctype = 'text/javascript')
-
-def wakeserver_power_handler(req, resp):
+def getServerNew(req):
     global _monitor
     global _plugins
-    
-    req.parseBody()
-    server, scheme, plugin = getServer(req)
+    target = req.path[9:] # /servers/<Server Name>
+    server = _monitor.serversDictOrg[target] \
+             if target in _monitor.serversDictOrg else None
+    status = _monitor.serversDict[target]['status'] == 'on' if server \
+             else False
+    scheme = server['scheme'] if server and 'scheme' in server else None
+    pluginName = scheme['plugin'] if scheme and 'plugin' in scheme else \
+                 scheme['type'] if scheme and 'type' in scheme else None
+    plugin = _plugins.plugins[pluginName] if pluginName in _plugins.plugins \
+             else None
+    return server, scheme, status, plugin
+
+def setServerStatus(server, scheme, power, reboot, plugin):
     type = scheme['type'] if scheme and 'type' in scheme else None
-    ctype = 'text/javascript'
-    rdata ={'result':False, 'message': 'No server found'}
+    err = 'No server found'
     if server == None:
-        resp.replyJson(rdata, ctype)
-        return
+        return err
     
-    power = False
-    reboot = False
     args = None
-    if req.path == '/cgi-bin/wakeserver-wake.cgi':
-        rdata['message'] = 'No way to wakeup this server'
-        power = True
-        reboot = False
+    if power:
+        err = 'No way to wakeup this server'
         on = scheme['on'] if 'on' in scheme else None
         if on == 'wol':
             args = ['/usr/bin/wakeonlan', server['macaddr']]
         elif on != 'custom':
             plugin = None
-    elif req.path == '/cgi-bin/wakeserver-sleep.cgi':
-        rdata['message'] = 'No way to sleep this server'
-        power = False
-        reboot = False
+    elif not power and not reboot:
+        err = 'No way to sleep this server'
         off = scheme['off'] if 'off' in scheme else None
         cmd = ''
         if off == 'sudo-shutdown' and (type == 'osx' or type == 'unix'):
@@ -78,10 +71,8 @@ def wakeserver_power_handler(req, resp):
                     scheme['user'],
                     remote,
                     cmd]
-    elif req.path == '/cgi-bin/wakeserver-reboot.cgi':
-        rdata['message'] = 'No way to reboot this server'
-        power = False
-        reboot = True
+    else:
+        err = 'No way to reboot this server'
         off = scheme['reboot'] if 'reboot' in scheme else None
         if off == 'sudo-shutdown' and (type == 'osx' or type == 'unix'):
             cmd = "nohup sh -c 'sudo /sbin/shutdown -r now'&"
@@ -95,9 +86,6 @@ def wakeserver_power_handler(req, resp):
                     scheme['user'],
                     remote,
                     cmd]
-    else:
-        resp.replyError(500, 'Invarid request')
-        return
 
     if args:
         nullfile = open("/dev/null")
@@ -106,23 +94,47 @@ def wakeserver_power_handler(req, resp):
                                 stdin = nullfile)
         result = proc.communicate()
         if proc.returncode == 0:
-            rdata['result'] = True
-            rdata['message'] = 'Succeed'
+            err = None
         else:
-            rdata['message'] = 'An error occurred\n\n' + result[1]
+            err = 'An error occurred\n\n'
     elif plugin:
         if plugin.setStatus(server, power, reboot):
-            rdata['result'] = True
-            rdata['message'] = 'Succeed'
+            err = None
         else:
-            rdata['message'] = 'An error occurred'
+            err = 'An error occurred'
     
+    return err
+
+def wakeserver_get_handler(req, resp):
+    req.parseBody()
+    if 'type' in req.params and req.params['type'] == ['full']:
+        resp.replyFile('/var/run/wakeserver/status.full',
+                       ctype = 'text/javascript')
+    else:
+        resp.replyFile('/var/run/wakeserver/status',
+                       ctype = 'text/javascript')
+
+def wakeserver_power_handler(req, resp):
+    req.parseBody()
+    server, scheme, plugin = getServer(req)
+    err = None
+    
+    if req.path == '/cgi-bin/wakeserver-wake.cgi':
+        err = setServerStatus(server, scheme, True, False, plugin)
+    elif req.path == '/cgi-bin/wakeserver-sleep.cgi':
+        err = setServerStatus(server, scheme, False, False, plugin)
+    elif req.path == '/cgi-bin/wakeserver-reboot.cgi':
+        err = setServerStatus(server, scheme, False, True, plugin)
+    else:
+        resp.replyError(500, 'Invarid request')
+        return
+
+    ctype = 'text/javascript'
+    rdata ={'result':not err,
+            'message': err if err else 'Succeed'}
     resp.replyJson(rdata, ctype)
 
 def wakeserver_attr_handler(req, resp):
-    global _monitor
-    global _plugins
-    
     req.parseBody()
     server, scheme, plugin = getServer(req)
     key = req.params['attribute'][0] if 'attribute' in req.params else None
@@ -151,6 +163,57 @@ def wakeserver_config_handler(req, resp):
     else:
         resp.close()
 
+def serversHandler(req, resp):
+    req.parseBody()
+    if req.method != httpd.Method.get:
+        resp.replyError(500, 'Invalid method type')
+    wakeserver_get_handler(req,resp)
+
+def serverHandler(req, resp):
+    req.parseBody()
+    if req.method != httpd.Method.get and req.method != httpd.Method.post:
+        resp.replyError(500, 'Invalid method type')
+        return
+
+    server, scheme, status, plugin = getServerNew(req)
+    if not server:
+        resp.replyError(500, 'Not found server')
+        return
+    
+    if req.method == httpd.Method.get:
+        attrs = None
+        if plugin:
+            attrs = plugin.getAttrs(server)
+        rdata = {'isOn': status, 'attributes': attrs if attrs else {}}
+        resp.replyJson(rdata)
+    else:
+        data = req.json
+        if data:
+            power = data['isOn'] if 'isOn' in data else None
+            reboot = data['reboot'] if 'reboot' in data else False
+            attrs = data['attributes'] if 'attributes' in data else None
+            if power:
+                on = scheme['on'] if 'on' in scheme else None
+                if on != 'custom':
+                    plugin = None
+            elif power == False and not reboot:
+                off = scheme['off'] if 'off' in scheme else None
+                if off != 'custom':
+                    plugin = None
+            elif power == False and reboot:
+                off = scheme['reboot'] if 'reboot' in scheme else None
+                if off != 'custom':
+                    plugin = None
+
+            err = None
+            if plugin:
+                if not plugin.setStatus(server, power, reboot, attrs):
+                    resp.replyError(500, 'cannot set status')
+            else:
+                err = setServerStatus(server, scheme, power, reboot, plugin)
+                if err:
+                    resp.replyError(500, err)
+
 def serveForever(monitor, plugins):
     global _monitor
     global _plugins
@@ -163,4 +226,6 @@ def serveForever(monitor, plugins):
                       wakeserver_attr_handler)
     server.addHandler('/cgi-bin/wakeserver-config.cgi',
                       wakeserver_config_handler)
+    server.addHandler('/servers', serversHandler)
+    server.addHandler('/servers/', serverHandler, True)
     server.serveForever()
