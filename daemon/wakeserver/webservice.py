@@ -105,14 +105,14 @@ def setServerStatus(server, scheme, power, reboot, plugin):
     
     return err
 
-def wakeserver_get_handler(req, resp):
+def wakeserver_get_handler(req, resp, ctype = 'text/javascript'):
     req.parseBody()
     if 'type' in req.params and req.params['type'] == ['full']:
         resp.replyFile('/var/run/wakeserver/status.full',
                        ctype = 'text/javascript')
     else:
         resp.replyFile('/var/run/wakeserver/status',
-                       ctype = 'text/javascript')
+                       ctype = ctype)
 
 def wakeserver_power_handler(req, resp):
     req.parseBody()
@@ -167,7 +167,7 @@ def serversHandler(req, resp):
     req.parseBody()
     if req.method != httpd.Method.get:
         resp.replyError(500, 'Invalid method type')
-    wakeserver_get_handler(req,resp)
+    wakeserver_get_handler(req, resp, ctype = 'application/json')
 
 def serverHandler(req, resp):
     req.parseBody()
