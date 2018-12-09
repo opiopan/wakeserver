@@ -32,6 +32,7 @@ class ATTR:
     power = '!1PWR'
     volume = '!1MVL'
     selector = '!1SLI'
+
 class Command:
     HEADER_LENGTH = 16
     HEADER = struct.Struct('!4sii4s')
