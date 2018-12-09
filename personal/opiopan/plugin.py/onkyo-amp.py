@@ -80,7 +80,7 @@ class Command:
             self.value = None
 
     def serialize(self):
-        if self.value:
+        if self.value != None:
             if self.kind == ATTR.power:
                 value = '01' if self.value else '00'
             elif self.kind == ATTR.volume or self.kind == ATTR.selector:
@@ -171,7 +171,8 @@ class Sender(threading.Thread):
             if cmd is self.terminator:
                 return
             try:
-                self.controller.sock.sendall(cmd.serialize())
+                data = cmd.serialize()
+                self.controller.sock.sendall(data)
                 self.time = time.time()
                 #time.sleep(0.01)
             except:
@@ -256,11 +257,11 @@ class Controller(threading.Thread):
         if not self.sender:
             return False
         
-        if power:
+        if power != None:
             self.sender.send(Command(ATTR.power, power))
-        if volume:
+        if volume != None:
             self.sender.send(Command(ATTR.volume, volume))
-        if selector:
+        if selector != None:
             self.sender.send(Command(ATTR.selector, selector))
         return True
         
@@ -314,6 +315,7 @@ class Controller(threading.Thread):
             time.sleep(5)
             
     def run(self):
+        time.sleep(2)
         while True:
             self.schedule()
 

@@ -4,27 +4,51 @@ SLEEP_DEFFERED=120
 STOP_TIME=/run/wakeserver/musicstopping.time
 AMP_STATUS=/run/wakeserver/onkyo-amp.status
 
-TVIP="192.168.22.39"
-TVMAC="EC:21:E5:69:1E:9B"
-AMPIP="192.168.22.17"
-AMPMAC="00:09:B0:4B:F6:5F"
+URL='http://localhost:8080/servers'
+TVNAME=TV%20@living%20%231
+AMPNAME=AV%20amplifier
+STOPCMD='{"isOn":false}'
+AMPSTARTCMD='{"isOn":true,"attributes":{"selector":0,"volume":26}}'
 
-TVPRG="/var/www/wakeserver/plugin/regza"
-AMPPRG="/var/www/wakeserver/plugin/onkyo-amp"
+ison(){
+    SERVER="$1"
+    curl -s "$URL/$SERVER" | python -m json.tool |
+	awk '
+            BEGIN {rc = 1}
+	    $1 == "\"isOn\":"{
+                if ($2 == "true"){
+                    rc = 0;
+                    exit;
+                }else{
+                    rc = 1;
+                    exit;
+                }
+            }
+            END {exit rc}
+        '
+}
+
+post(){
+    SERVER="$1"
+    DATA="$2"
+    curl -s -XPOST -H'Content-Type: application/json' -d"$DATA" "$URL/$SERVER"
+}
 
 CMD="$1"
 
 case "$CMD" in
     start)
-	rm $STOP_TIME
-	$AMPPRG diag $AMPIP $AMPMAC 0
-	if $TVPRG diag $TVIP $TVMAC 1;then
-	    $TVPRG off $TVIP $TVMAC 0
-	    while $TVPRG diag $TVIP $TVMAC 1;do : ;done
+	rm -f $STOP_TIME
+	if ison "$TVNAME";then
+	    post "$TVNAME" "$STOPCMD"
+	    while ison "$TVNAME" ;do
+		echo 'tv checking'
+		sleep 0.5
+	    done
 	    sleep 2
-	    $AMPPRG on $AMPIP $AMPMAC 0
+	    post "$AMPNAME" "$AMPSTARTCMD"
 	else
-	    $AMPPRG on $AMPIP $AMPMAC 0
+	    post "$AMPNAME" "$AMPSTARTCMD"
 	fi
 	;;
     stop)
@@ -35,10 +59,8 @@ case "$CMD" in
 	    now=`date +%s`
 	    past=`cat $STOP_TIME`
 	    if [ "$past" != ""  ] && [ `expr $now - $past` -gt $threshold ];then
-		$AMPPRG diag $AMPIP $AMPMAC 0
-		status=`cat $AMP_STATUS`
-		if [ "$status" = "on !1SLI00" ];then
-		    $AMPPRG off $AMPIP $AMPMAC 0
+		if ! ison "$TVNAME";then
+		    post "$AMPNAME" "$STOPCMD"
 		fi
 	    fi 
 	)&
