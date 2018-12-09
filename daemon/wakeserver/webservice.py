@@ -106,13 +106,12 @@ def setServerStatus(server, scheme, power, reboot, plugin):
     return err
 
 def wakeserver_get_handler(req, resp, ctype = 'text/javascript'):
+    global _monitor
     req.parseBody()
     if 'type' in req.params and req.params['type'] == ['full']:
-        resp.replyFile('/var/run/wakeserver/status.full',
-                       ctype = 'text/javascript')
+        resp.replyFile('/var/run/wakeserver/status.full', ctype = ctype)
     else:
-        resp.replyFile('/var/run/wakeserver/status',
-                       ctype = ctype)
+        resp.replyJson(_monitor.statuses, ctype = ctype)
 
 def wakeserver_power_handler(req, resp):
     req.parseBody()

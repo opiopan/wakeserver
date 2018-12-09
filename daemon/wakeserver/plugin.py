@@ -13,6 +13,8 @@ PLUGIN_OLD_DIR = "/var/www/wakeserver/plugin"
 DIAG_INTERVAL = 1
 
 class Plugin:
+    needPolling = True
+    
     def diagnose(self, server):
         return False
     
@@ -76,6 +78,7 @@ class _Proxy(Plugin):
     def __init__(self, name, obj):
         self.name = name
         self.origin = obj
+        self.needPolling = obj.needPolling
         
     def diagnose(self, server):
         def proc():

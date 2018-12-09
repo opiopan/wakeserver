@@ -48,6 +48,7 @@ def main():
         pool = plugin.PluginPool(conf)
 
         monitor = monitoring.Monitor(conf, pool)
+        monitoring.monitor = monitor
         monitor.start()
 
         webservice.serveForever(monitor, pool)

@@ -189,9 +189,15 @@ class PHASE:
     shuttingdown = 3
 
 class Controller(threading.Thread):
-    def __init__(self, addr):
+    def __init__(self, server):
         super(Controller, self).__init__()
-        self.addr= addr
+        self.addr= server["ipaddr"]
+        self.serverName = server["name"]
+        option = server['plugin-option'] if 'plugin-option' in server else None
+        self.tvName = option['tv-name'] \
+                      if option and 'tv-name' in option else None
+        self.tvSelector = option['tv-selector'] \
+                          if option and 'tv-selector' in option else None
         self.power = None
         self.volume = None
         self.selector = None
@@ -208,10 +214,14 @@ class Controller(threading.Thread):
         self.resetEvent.set()
 
     def applyCommand(self, cmd):
+        reflectToTV = False
         if cmd.kind == ATTR.power:
             print 'ISCP: power = {0}'.format(cmd.value)
             old = self.power
             self.power = cmd.value
+            reflectToTV = True
+            if monitoring.monitor:
+                monitoring.monitor.setStatus(self.serverName, self.power)
             if self.power != old:
                 self.updateLog()
         elif cmd.kind == ATTR.volume:
@@ -221,6 +231,13 @@ class Controller(threading.Thread):
             print 'ISCP: selector = {0}'.format(cmd.value)
             self.selector = cmd.value
             self.updateLog()
+            if monitoring.monitor:
+                monitoring.monitor.setStatus(self.serverName, self.power)
+            reflectToTV = True
+        if reflectToTV and self.tvName and self.tvSelector:
+            status = self.power and self.selector == self.tvSelector
+            if monitoring.monitor:
+                monitoring.monitor.setStatus(self.tvName, status)
 
     def updateLog(self):
         if self.power == None or self.selector == None:
@@ -304,6 +321,8 @@ class Controller(threading.Thread):
 # plugin imprementation
 #---------------------------------------------------------------------
 class OnkyoAmpPlugin(plugin.Plugin):
+    needPolling = False
+    
     def __init__(self, conf):
         self.conf = conf
         self.controllers = {}
@@ -312,7 +331,8 @@ class OnkyoAmpPlugin(plugin.Plugin):
             for server in group["servers"]:
                 if server["scheme"]["type"] == PLUGIN_NAME:
                     addr = server["ipaddr"]
-                    controller = Controller(addr)
+                    serverName = server["name"]
+                    controller = Controller(server)
                     self.controllers[addr] = controller
                     controller.start()
                     print '    ' + addr

@@ -36,16 +36,23 @@ def getNodeNameAndShadowName(addr):
 # shadow representation class
 #---------------------------------------------------------------------
 class ElfletShadow:
-    def __init__(self, nodeName, shadowName, power = False, attrs = None):
+    def __init__(self, nodeName, shadowName, power = False, attrs = None, \
+                 serverName = None):
         self.nodeName = nodeName
         self.shadowName = shadowName
         self.power = power
         self.attrs = attrs
+        self.serverName = serverName
+        if self.serverName and monitoring.monitor:
+            monitoring.monitor.setStatus(self.serverName, self.power)
+            
 
     def updateStatus(self, data):
         if "IsOn" in data:
             self.power = data["IsOn"]
             print 'change shadow to {0}'.format(self.power)
+            if self.serverName and monitoring.monitor:
+                monitoring.monitor.setStatus(self.serverName, self.power)
         if "Attributes" in data:
             self.attrs =data["Attributes"]
     def url(self):
@@ -121,8 +128,10 @@ class Observer(threading.Thread):
             for server in group["servers"]:
                 if server["scheme"]["type"] == SHADOW_PLUGIN_NAME:
                     name = server["ipaddr"]
+                    serverName = server["name"]
                     node, shadow = getNodeNameAndShadowName(name)
-                    _shadows[name] = ElfletShadow(node, shadow)
+                    _shadows[name] = ElfletShadow(node, shadow,
+                                                  serverName = serverName)
                     print '    ' + name
         
     def run(self):
@@ -140,6 +149,8 @@ class Observer(threading.Thread):
 # elflet shadow plugin imprementation
 #---------------------------------------------------------------------
 class ElfletShadowPlugin(plugin.Plugin):
+    needPolling = False
+    
     def __init__(self, conf):
         self.conf = conf
 

@@ -15,6 +15,8 @@ INTERVAL_WRITE =   2
 OPERATIVE_MAX =    3
 NORMAL_MAX =       7
 
+monitor = None
+
 class Monitor(threading.Thread) :
     def __init__(self, conf, pool):
         super(Monitor, self).__init__()
@@ -24,8 +26,10 @@ class Monitor(threading.Thread) :
         self.serversDict = {}
         self.serversDictOrg = {}
         self.statuses = []
+        self.statusesDict ={}
         self.operativeServers = []
         self.normalServers = []
+        self.realtimeServers = []
 
         i = 0
         for group in self.conf:
@@ -41,10 +45,19 @@ class Monitor(threading.Thread) :
                     del server["scheme"]["user"]
                 if "diag" in server["scheme"]:
                     diag = server["scheme"]["diag"]
-                    if diag == "normallyoff":
+                    pname = server['scheme']['type'] \
+                            if diag == 'custom' else None
+                    plugin = self.plugins[pname] \
+                             if pname in self.plugins else None
+                    realTime = plugin and (not plugin.needPolling)
+                    if diag == "normallyoff" or diag == 'slave':
                         server["status"] = "off"
                     elif diag == "alwayson":
                         server["status"] = "on"
+                    elif realTime:
+                        server["status"] = 'off'
+                        self.realtimeServers.append(i)
+                        print 'skip polling: {0}'.format(server['name'])
                     else:
                         server["status"] = "off"
                         if "on" in server["scheme"] or \
@@ -52,7 +65,9 @@ class Monitor(threading.Thread) :
                             self.operativeServers.append(i)
                         else:
                             self.normalServers.append(i)
-                self.statuses.append({"status": server["status"]})
+                stObj = {"status": server["status"]}
+                self.statuses.append(stObj)
+                self.statusesDict[server['name']] = stObj
                 i = i + 1
 
         with open(STATUS_FILE_FULL, "w") as f1, open(STATUS_FILE, "w") as f2:
@@ -82,7 +97,22 @@ class Monitor(threading.Thread) :
                       nmThreadNum, i, self.plugins)))
             self.nmThread[i].start()
 
+    def setStatus(self, name, status):
+        if name in self.serversDict:
+            print 'MONITOR: change "{0}" status to {1}'.format(name, status)
+            stStr = 'on' if status else 'off'
+            self.serversDict[name]['status']  = stStr
+            self.statusesDict[name]['status'] = stStr
+
     def run(self):
+        for i in self.realtimeServers:
+            server = self.servers[i]
+            pname = server['scheme']['type']
+            plugin = self.plugins[pname]
+            status = 'on' if plugin.diagnose(server) else 'off'
+            server['status'] = status
+            self.statuses[i]['status'] = status
+        
         while True:
             time.sleep(INTERVAL_WRITE)
             with open(STATUS_FILE_NEW, "w") as f:
