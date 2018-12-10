@@ -20,9 +20,6 @@ RECIEVE_TIMEOUT = 5
 VOLUME_KEY = "volume"
 SELECTOR_KEY = "selector"
 
-LOG             = '/run/wakeserver/onkyo-amp.status.new'
-LOG_ORG         = '/run/wakeserver/onkyo-amp.status'
-
 DEBUG = 'DEBUG' in os.environ
 
 #---------------------------------------------------------------------
@@ -224,15 +221,12 @@ class Controller(threading.Thread):
             reflectToTV = True
             if monitoring.monitor:
                 monitoring.monitor.setStatus(self.serverName, self.power)
-            if self.power != old:
-                self.updateLog()
         elif cmd.kind == ATTR.volume:
             print 'ISCP: volume = {0}'.format(cmd.value)
             self.volume = cmd.value
         elif cmd.kind == ATTR.selector:
             print 'ISCP: selector = {0}'.format(cmd.value)
             self.selector = cmd.value
-            self.updateLog()
             if monitoring.monitor:
                 monitoring.monitor.setStatus(self.serverName, self.power)
             reflectToTV = True
@@ -240,19 +234,6 @@ class Controller(threading.Thread):
             status = self.power and self.selector == self.tvSelector
             if monitoring.monitor:
                 monitoring.monitor.setStatus(self.tvName, status)
-
-    def updateLog(self):
-        if self.power == None or self.selector == None:
-            return
-        
-        with open(LOG, 'w') as log:
-            if self.power:
-                print >> log, 'on !1SLI{:02X}'.format(self.selector)
-                print 'ISCP: on -> log'
-            else:
-                print >> log, 'off'
-                print 'ISCP: off -> log'
-        os.rename(LOG, LOG_ORG)
 
     def setStatus(self, power = None, volume = None, selector = None):
         if not self.sender:
