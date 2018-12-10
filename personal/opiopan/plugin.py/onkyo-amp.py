@@ -329,7 +329,7 @@ class OnkyoAmpPlugin(plugin.Plugin):
     def __init__(self, conf):
         self.conf = conf
         self.controllers = {}
-        print 'onkyo-amp: detected device'
+        print 'onkyo-amp: detected devices:'
         for group in self.conf.servers:
             for server in group["servers"]:
                 if server["scheme"]["type"] == PLUGIN_NAME:

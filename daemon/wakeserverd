@@ -32,9 +32,13 @@ def daemonize(inDebug):
     return True
 
 def main():
+    global MAIN_CONF
     global SERVERS_CONF
     if 'SERVERS_CONF' in os.environ:
         SERVERS_CONF = os.environ['SERVERS_CONF']
+    if 'WAKESERVER_CONF' in os.environ:
+        MAIN_CONF = os.environ['WAKESERVER_CONF']
+    print 'WAKESERVER_CONF: ' + MAIN_CONF
     print 'SERVERS_CONF: ' + SERVERS_CONF
     
     if daemonize('DEBUG' in os.environ):

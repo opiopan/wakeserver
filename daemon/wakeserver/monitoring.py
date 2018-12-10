@@ -57,7 +57,8 @@ class Monitor(threading.Thread) :
                     elif realTime:
                         server["status"] = 'off'
                         self.realtimeServers.append(i)
-                        print 'skip polling: {0}'.format(server['name'])
+                        print 'MONITOR: skip polling: {0}'.format(
+                            server['name'])
                     else:
                         server["status"] = "off"
                         if "on" in server["scheme"] or \

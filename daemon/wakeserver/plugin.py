@@ -126,7 +126,9 @@ class PluginPool:
 
         sys.path.append(pluginDir)
 
+        pluginnames = []
         self.plugins = {}
+
         if os.path.isdir(pluginDir):
             files = os.listdir(pluginDir)
             for fname in files:
@@ -137,7 +139,8 @@ class PluginPool:
                         plugins = module.wakeserverPlugin(self.conf)
                         for (pname, plugin) in plugins:
                             self.plugins[pname] = _Proxy(pname, plugin)
-                            print pname
+                            pluginnames.append(pname + ': ' +
+                                               pluginDir + '/' + fname)
                     
                     if DEBUG:
                         loadModule()
@@ -145,13 +148,16 @@ class PluginPool:
                     try:
                         loadModule()
                     except:
-                        print 'Initializing a plugin failed: ' + name
+                        print 'PLUGIN: Initializing a plugin failed: ' + name
                         
         if os.path.isdir(PLUGIN_OLD_DIR):
             files = os.listdir(PLUGIN_OLD_DIR)
             for fname in files:
                 if not fname in self.plugins:
                     self.plugins[fname] = _OldPlugin(fname)
-                    print fname
+                    pluginnames.append(fname + ': ' +
+                                       PLUGIN_OLD_DIR + '/' + fname)
 
-        print str(len(self.plugins)) + ' plugins loaded'
+        print 'PLUGIN: {0} plubins loaded'.format(len(self.plugins))
+        for name in pluginnames:
+            print '    ' + name

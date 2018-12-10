@@ -2,7 +2,6 @@
 
 SLEEP_DEFFERED=120
 STOP_TIME=/run/wakeserver/musicstopping.time
-AMP_STATUS=/run/wakeserver/onkyo-amp.status
 
 URL='http://localhost:8080/servers'
 TVNAME=TV%20@living%20%231

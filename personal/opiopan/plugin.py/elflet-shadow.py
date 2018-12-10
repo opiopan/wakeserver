@@ -50,7 +50,7 @@ class ElfletShadow:
     def updateStatus(self, data):
         if "IsOn" in data:
             self.power = data["IsOn"]
-            print 'change shadow to {0}'.format(self.power)
+            print 'elflet: change shadow to {0}'.format(self.power)
             if self.serverName and monitoring.monitor:
                 monitoring.monitor.setStatus(self.serverName, self.power)
         if "Attributes" in data:
@@ -82,11 +82,11 @@ class ElfletShadow:
 # mqtt subscriber
 #---------------------------------------------------------------------
 def on_connect(client, userdata, flags, rc):
-    print 'mqtt: connected as code {0}'.format(rc)
+    print 'elflet-mqtt: connected as code {0}'.format(rc)
     client.subscribe(client.topic)
 
 def on_subscribe(client, userdata, mid, granted_qos):
-    print 'mqtt: accepted subscribe topic: {0}'.format(client.topic)
+    print 'elflet-mqtt: accepted subscribe topic: {0}'.format(client.topic)
     
 def on_message(client, userdata, msg):
     global _shadows
@@ -95,10 +95,10 @@ def on_message(client, userdata, msg):
     shadowName = data['ShadowName']
     name = nodeName + '.local:' + shadowName
     if not name in _shadows:
-        print 'mqtt: unmanaged shadow: {0}'.format(name)
+        print 'elflet-mqtt: unmanaged shadow: {0}'.format(name)
         _shadows[name] = ElfletShadow(nodeName, shadowName)
     _shadows[name].updateStatus(data)
-    print 'mqtt: message from {0}'.format(name)
+    print 'elflet-mqtt: message from {0}'.format(name)
 
 class Subscriber(threading.Thread):
     def __init__(self, conf):
@@ -106,6 +106,8 @@ class Subscriber(threading.Thread):
         self.conf = conf
 
     def run(self):
+        time.sleep(1)
+        
         client = mqtt.Client(protocol=mqtt.MQTTv311)
         client.topic = TOPIC
         client.on_connect = on_connect
@@ -136,13 +138,14 @@ class Observer(threading.Thread):
         
     def run(self):
         global _shadows
+        time.sleep(1)
         while True:
             for name in _shadows.keys():
-                print 'checking ' + name
+                print 'elflet: checking ' + name
                 data = _shadows[name].diagnose()
                 if data != None:
                     _shadows[name].updateStatus(data)
-                    print data['IsOn']
+                    print 'elflet: {0} = {1}'.format(name, data['IsOn'])
             time.sleep(DIAG_INTERVAL)
     
 #---------------------------------------------------------------------
