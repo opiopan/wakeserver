@@ -27,7 +27,9 @@ class CECController(threading.Thread):
         self.status = False
 
     def observe(self):
-        proc = subprocess.Popen(['cec-client'], stdout = subprocess.PIPE)
+        proc = subprocess.Popen(['cec-client'],
+                                stdout = subprocess.PIPE,
+                                stdin = subprocess.PIPE)
         while True:
             line = proc.stdout.readline()
             if not line :

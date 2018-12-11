@@ -7,7 +7,7 @@ Type=simple
 ExecStart=/var/www/wakeserver/daemon/wakeserverd
 Restart=on-failure
 RestartSec=10
-KillMode=process
+KillMode=control-group
 
 [Install]
 WantedBy=multi-user.target
