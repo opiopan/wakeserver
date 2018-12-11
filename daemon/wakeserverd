@@ -6,7 +6,7 @@ import signal
 import time
 import json
 from collections import namedtuple
-from wakeserver import monitoring, plugin, webservice
+from wakeserver import monitoring, plugin, webservice, cecmonitor
 
 PIDFILE =          "/run/wakeserverd.pid"
 STATUS_DIR =       "/run/wakeserver"
@@ -54,6 +54,8 @@ def main():
         monitor = monitoring.Monitor(conf, pool)
         monitoring.monitor = monitor
         monitor.start()
+
+        cecmonitor.startCECmonitor(conf, monitor)
 
         webservice.serveForever(monitor, pool)
 

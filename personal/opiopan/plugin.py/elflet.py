@@ -97,8 +97,8 @@ def on_message(client, userdata, msg):
     if not name in _shadows:
         print 'elflet-mqtt: unmanaged shadow: {0}'.format(name)
         _shadows[name] = ElfletShadow(nodeName, shadowName)
-    _shadows[name].updateStatus(data)
     print 'elflet-mqtt: message from {0}'.format(name)
+    _shadows[name].updateStatus(data)
 
 class Subscriber(threading.Thread):
     def __init__(self, conf):
@@ -144,8 +144,8 @@ class Observer(threading.Thread):
                 print 'elflet: checking ' + name
                 data = _shadows[name].diagnose()
                 if data != None:
-                    _shadows[name].updateStatus(data)
                     print 'elflet: {0} = {1}'.format(name, data['IsOn'])
+                    _shadows[name].updateStatus(data)
             time.sleep(DIAG_INTERVAL)
     
 #---------------------------------------------------------------------

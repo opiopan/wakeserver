@@ -52,8 +52,12 @@ class Monitor(threading.Thread) :
                     realTime = plugin and (not plugin.needPolling)
                     if diag == "normallyoff" or diag == 'slave':
                         server["status"] = "off"
+                        print 'MONITOR: skip polling: {0}'.format(
+                            server['name'])
                     elif diag == "alwayson":
                         server["status"] = "on"
+                        print 'MONITOR: skip polling: {0}'.format(
+                            server['name'])
                     elif realTime:
                         server["status"] = 'off'
                         self.realtimeServers.append(i)
@@ -100,10 +104,13 @@ class Monitor(threading.Thread) :
 
     def setStatus(self, name, status):
         if name in self.serversDict:
-            print 'MONITOR: change "{0}" status to {1}'.format(name, status)
             stStr = 'on' if status else 'off'
-            self.serversDict[name]['status']  = stStr
-            self.statusesDict[name]['status'] = stStr
+            server = self.serversDict[name]
+            if server['status'] != stStr:
+                print 'MONITOR: change "{0}" status to {1}'.\
+                    format(name, stStr)
+                server['status']  = stStr
+                self.statusesDict[name]['status'] = stStr
 
     def run(self):
         for i in self.realtimeServers:
