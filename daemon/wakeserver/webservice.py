@@ -213,12 +213,12 @@ def serverHandler(req, resp):
                 if err:
                     resp.replyError(500, err)
 
-def serveForever(monitor, plugins):
+def serveForever(monitor, plugins, baseDir = None):
     global _monitor
     global _plugins
     _monitor = monitor
     _plugins = plugins
-    server = httpd.Server(PORT, BASE_DIR)
+    server = httpd.Server(PORT, baseDir if baseDir else BASE_DIR)
     server.addHandler('/cgi-bin/wakeserver-get.cgi', wakeserver_get_handler)
     server.addHandler('/cgi-bin/wakeserver-', wakeserver_power_handler, True)
     server.addHandler('/cgi-bin/wakeserver-attribute.cgi',

@@ -11,8 +11,12 @@ from wakeserver import monitoring, plugin, webservice, cecmonitor
 PIDFILE =          "/run/wakeserverd.pid"
 STATUS_DIR =       "/run/wakeserver"
 ERROR_FILE =       "/run/wakeserver/error"
+
 MAIN_CONF =        "/var/www/wakeserver/wakeserver.conf"
 SERVERS_CONF =     "/var/www/wakeserver/servers.conf"
+WEB_ROOT =          "/var/www/wakeserver/html"
+PLUGIN_DIR =       "/var/www/wakeserver/plugin.py"
+OLD_PLUGIN_DIR =    "/var/www/wakeserver/plugin"
 
 def daemonize(inDebug):
     if not inDebug:
@@ -34,12 +38,25 @@ def daemonize(inDebug):
 def main():
     global MAIN_CONF
     global SERVERS_CONF
+    global WEB_ROOT
+    global PLUGIN_DIR
+    global OLD_PLUG_DIR
     if 'SERVERS_CONF' in os.environ:
         SERVERS_CONF = os.environ['SERVERS_CONF']
     if 'WAKESERVER_CONF' in os.environ:
         MAIN_CONF = os.environ['WAKESERVER_CONF']
-    print 'WAKESERVER_CONF: ' + MAIN_CONF
-    print 'SERVERS_CONF: ' + SERVERS_CONF
+    if 'WEB_ROOT' in os.environ:
+        WEB_ROOT = os.environ['WEB_ROOT']
+    if 'PLUGIN_DIR' in os.environ:
+        PLUGIN_DIR = os.environ['PLUGIN_DIR']
+    print '-----------------------------------------------------------------'
+    print 'WakeServer daemon:'
+    print '    WAKESERVER_CONF: ' + MAIN_CONF
+    print '    SERVERS_CONF:    ' + SERVERS_CONF
+    print '    WEB_ROOT:        ' + WEB_ROOT
+    print '    PLUGIN_DIR:      ' + PLUGIN_DIR
+    print '    OLD_PLUGIN_DIR:  ' + OLD_PLUGIN_DIR
+    print '-----------------------------------------------------------------\n'
     
     if daemonize('DEBUG' in os.environ):
         conf = namedtuple('Config', ('main', 'servers'))
@@ -49,15 +66,15 @@ def main():
         with open(SERVERS_CONF) as f:
             conf.servers = json.load(f)
 
-        pool = plugin.PluginPool(conf)
-
+        pool = plugin.PluginPool(conf, 
+                                 pluginDir = PLUGIN_DIR)
         monitor = monitoring.Monitor(conf, pool)
         monitoring.monitor = monitor
         monitor.start()
 
         cecmonitor.startCECmonitor(conf, monitor)
 
-        webservice.serveForever(monitor, pool)
+        webservice.serveForever(monitor, pool, WEB_ROOT)
 
 if __name__ == '__main__':
     def sigintHandler(signal, frame):

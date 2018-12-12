@@ -117,14 +117,10 @@ class _Proxy(Plugin):
             return None
     
 class PluginPool:
-    def __init__(self, conf):
+    def __init__(self, conf, pluginDir = None):
         self.conf = conf
 
-        pluginDir = PLUGIN_DIR
-        if 'PLUGIN' in os.environ:
-            pluginDir = os.environ['PLUGIN']
-
-        sys.path.append(pluginDir)
+        sys.path.append(pluginDir if pluginDir else PLUGIN_DIR)
 
         pluginnames = []
         self.plugins = {}
@@ -158,6 +154,6 @@ class PluginPool:
                     pluginnames.append(fname + ': ' +
                                        PLUGIN_OLD_DIR + '/' + fname)
 
-        print 'PLUGIN: {0} plubins loaded'.format(len(self.plugins))
+        print 'PLUGIN: {0} plugins are loaded'.format(len(self.plugins))
         for name in pluginnames:
             print '    ' + name
