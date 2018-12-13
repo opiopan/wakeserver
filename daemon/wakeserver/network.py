@@ -4,6 +4,7 @@ import time
 import json
 import socket
 import subprocess
+from wakeserver import monitoring
 
 MASTER_SERVICE = '_wakeserver._tcp'
 SLAVE_SERVICE = '_wakeserver_slave._tcp'
@@ -49,13 +50,13 @@ def applyRemote(data):
 
 def makeSyncData():
     global isMaster
-    data = {HOST_KEY: HOSTNAME + MASTER_PORT if isMaster else SLAVE_PORT}
+    data = {HOST_KEY: HOSTNAME + (MASTER_PORT if isMaster else SLAVE_PORT)}
     
     if not isMaster:
         hosts = []
         for server in monitoring.monitor.servers:
-            sdata = {NAME_KEY, server['name'],
-                     STATUS_KEY, server['status'] == 'on'}
+            sdata = {NAME_KEY: server['name'],
+                     ISON_KEY: server['status'] == 'on'}
             hosts.append(sdata)
         data[SERVERS_KEY] = hosts
 
