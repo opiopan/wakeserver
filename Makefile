@@ -5,6 +5,7 @@ SITE_CONF_DIR		= /etc/apache2/sites-available
 BASE_DIR		= /var/www/wakeserver
 HTML_DIR		= /var/www/wakeserver/html
 CGI_DIR			= /usr/lib/cgi-bin
+BIN_DIR			= /var/www/wakeserver/bin
 SBIN_DIR		= /var/www/wakeserver/sbin
 PLUGIN_DIR		= /var/www/wakeserver/plugin
 DAEMON_DIR		= /var/www/wakeserver/daemon
@@ -42,15 +43,26 @@ WAKESERVERCONF_SRC	= personal/$(PERSONAL)/wakeserver.conf
 SERVERSCONF_SRC		= personal/$(PERSONAL)/servers.conf
 
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
-			  $(PLUGIN_DIR)
+			  $(PLUGIN_DIR) $(BIN_DIR)
 
 PIP			= /usr/local/bin/pip
 PPKGS			= requests paho-mqtt
 
-INSTALL_TARGET		= apache2restart daemonrestart avahirestart \
-			  homebridgerestart mqttrestart pythonpackage
+AVAHI_BROWSE		= /usr/bin/avahi-browse
+
+include .config.mk
 
 all:
+
+.config.mk:
+	@echo 
+	@echo '---------------------------------------------------------------'
+	@echo 'Please run following command to'\
+	      'configure make environment as followings'
+	@echo '    ./configure <personalizing-directory>'
+	@echo '---------------------------------------------------------------'
+	@echo 
+	@exit 1
 
 install: $(INSTALL_TARGET)
 
@@ -65,8 +77,10 @@ $(MQTT_CONF):
 	mv $(MQTT_CONF) $(MQTT_CONF).bak
 	$(COMMENT) '^log_dest' < $(MQTT_CONF).bak >$(MQTT_CONF) 
 
-avahirestart:
-	m4 -D ID="`$(EXTJSON) $(WAKESERVERCONF_SRC) uuid`"\
+avahirestart: $(AVAHI_BROWSE)
+	m4 -D SERVICENAME=$(SERVICE_NAME) \
+	   -D PORT=$(SERVICE_PORT) \
+	   -D ID="`$(EXTJSON) $(WAKESERVERCONF_SRC) uuid`"\
 	   -D DESC="`$(EXTJSON) $(WAKESERVERCONF_SRC) description`"\
 	   -D PLATFORM="`$(EXTJSON) $(WAKESERVERCONF_SRC) platform`"\
 	   -D CONFIGHASH="`md5sum $(WAKESERVERCONF_SRC) | cut -d' ' -f1`"\
@@ -93,12 +107,13 @@ homebridge-service: $(HOMEBRIDGE_SERVICE) $(HOMEBRIDGE_DEFAULT) $(HOMEBRIDGE_RUN
 copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 	cp -R html/* $(HTML_DIR) || exit 1
 	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
+	cp -R bin/* $(BIN_DIR) || exit 1
 	cp -R personal/$(PERSONAL)/* $(BASE_DIR) || exit 1
 
 commands: sbin
 	make -C src
 
-intermediate sbin $(SBIN_DIR):
+intermediate sbin $(SBIN_DIR) $(BIN_DIR):
 	mkdir $@
 
 daemon: $(DAEMON) $(SERVICE_CONF) daemonlib
@@ -156,3 +171,6 @@ pythonpackage: $(PIP)
 
 $(PIP):
 	curl -kL https://bootstrap.pypa.io/get-pip.py | python
+
+$(AVAHI_BROWSE):
+	apt-get install -y avahi-utils

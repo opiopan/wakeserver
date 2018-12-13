@@ -1,0 +1,24 @@
+#!/bin/sh
+
+if [ $# != 1 ];then
+    echo "usage: `basename $0` <personalize-data-dir>" >&2
+    exit 1
+fi
+
+BASEDIR="$1"
+TYPE=`tool/extjson $BASEDIR/wakeserver.conf server_type`
+
+if [ "$TYPE" = "" ];then
+    TYPE=master
+fi
+
+if [ "$TYPE" = master ];then
+    echo "INSTALL_TARGET = apache2restart daemonrestart avahirestart \\"
+    echo "                 homebridgerestart mqttrestart pythonpackage"
+    echo "SERVICE_NAME   = _wakeserver._tcp"
+    echo "SERVICE_PORT   = 8080"
+else
+    echo "INSTALL_TARGET = daemonrestart avahirestart pythonpackage"
+    echo "SERVICE_NAME   = _wakeserver_slave._tcp"
+    echo "SERVICE_PORT   = 8081"
+fi > .config.mk

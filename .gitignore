@@ -3,3 +3,4 @@
 sbin/
 intermediate/
 node_modules
+.config.mk

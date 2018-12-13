@@ -3,8 +3,8 @@
 <service-group>
   <name replace-wildcards="yes">%h</name>
   <service>
-    <type>_wakeserver._tcp</type>
-    <port>8080</port>
+    <type>SERVICENAME</type>
+    <port>PORT</port>
     <txt-record>id=ID</txt-record>
     <txt-record>desc=DESC</txt-record>
     <txt-record>platform=PLATFORM</txt-record>

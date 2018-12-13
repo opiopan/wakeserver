@@ -9,7 +9,7 @@ EnvironmentFile=/etc/default/homebridge
 ExecStart=/var/www/wakeserver/daemon/homebridge.run $HOMEBRIDGE_OPTS
 Restart=on-failure
 RestartSec=10
-KillMode=process
+KillMode=control-group
 
 [Install]
 WantedBy=multi-user.target

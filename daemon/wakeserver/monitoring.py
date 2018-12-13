@@ -13,7 +13,7 @@ STATUS_FILE_FULL = "/run/wakeserver/status.full"
 INTERVAL =         1
 INTERVAL_WRITE =   2
 OPERATIVE_MAX =    3
-NORMAL_MAX =       7
+NORMAL_MAX =       15
 
 monitor = None
 
@@ -90,7 +90,7 @@ class Monitor(threading.Thread) :
                 target=diagServers, name="th_hf",
                 args=(self.servers, self.statuses, 
                       self.operativeServers, INTERVAL,
-                      hfThreadNum, i, self.plugins)))
+                      hfThreadNum, i, self.plugins, self)))
             self.hfThread[i].start()
 
         self.nmThread = []
@@ -99,7 +99,7 @@ class Monitor(threading.Thread) :
                 target=diagServers, name="th_nm",
                 args=(self.servers, self.statuses,
                       self.normalServers, INTERVAL,
-                      nmThreadNum, i, self.plugins)))
+                      nmThreadNum, i, self.plugins, self)))
             self.nmThread[i].start()
 
     def setStatus(self, name, status):
@@ -112,6 +112,18 @@ class Monitor(threading.Thread) :
                 server['status']  = stStr
                 self.statusesDict[name]['status'] = stStr
 
+    def setStatusByIndex(self, index, status):
+        stStr = 'on' if status else 'off'
+        server = self.servers[index]
+        status = self.statuses[index]
+        name = server['name']
+        if server['status'] != stStr:
+            server['status']  = stStr
+            status['status'] = stStr
+            print 'MONITOR: change "{0}" status to {1}'.\
+                format(name, stStr)
+        
+                
     def run(self):
         for i in self.realtimeServers:
             server = self.servers[i]
@@ -128,11 +140,12 @@ class Monitor(threading.Thread) :
             os.rename(STATUS_FILE_NEW, STATUS_FILE)
 
 def diagServers(servers, statuses, targets, interval, groupNum, current,
-                plugins):
+                plugins, monitor):
     while True:
         for i in range(current, len(targets), groupNum):
-            server = servers[targets[i]]
-            status = statuses[targets[i]]
+            index = targets[i]
+            server = servers[index]
+            status = statuses[index]
             diag = server["scheme"]["diag"]
             cmd = ""
 
@@ -140,11 +153,9 @@ def diagServers(servers, statuses, targets, interval, groupNum, current,
                 name = server["scheme"]["type"]
                 if name in plugins:
                     if plugins[name].diagnose(server):
-                        server["status"] = "on"
-                        status["status"] = "on"
+                        monitor.setStatusByIndex(index, True)
                     else:
-                        server["status"] = "off"
-                        status["status"] = "off"
+                        monitor.setStatusByIndex(index, False)
                 continue
             
             if diag == "ping" or diag == "arp":
@@ -154,16 +165,13 @@ def diagServers(servers, statuses, targets, interval, groupNum, current,
             if cmd != "":
                 try:
                     subprocess.check_output(cmd)
-                    server["status"] = "on"
-                    status["status"] = "on"
+                    monitor.setStatusByIndex(index, True)
                     time.sleep(interval)
                 except:
                     active = False
                     if diag == "arp" and \
                             subprocess.check_output(arp, shell = True).\
                        split()[1] != '(incomplete)':
-                        server["status"] = "on"
-                        status["status"] = "on"
+                        monitor.setStatusByIndex(index, True)
                     else:
-                        server["status"] = "off"
-                        status["status"] = "off"
+                        monitor.setStatusByIndex(index, False)

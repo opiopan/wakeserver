@@ -6,10 +6,12 @@ import subprocess
 import httpd
 
 BASE_DIR = '/var/www/wakeserver/html'
-PORT = 8080
+MASTER_PORT = 8080
+SLAVE_PORT = 8081
 
 _monitor = None
 _plugins = None
+_isMaster = True
 
 def getServer(req):
     global _monitor
@@ -213,12 +215,15 @@ def serverHandler(req, resp):
                 if err:
                     resp.replyError(500, err)
 
-def serveForever(monitor, plugins, baseDir = None):
+def serveForever(monitor, plugins, isMaster = True, baseDir = None):
     global _monitor
     global _plugins
+    global _isMaster
     _monitor = monitor
     _plugins = plugins
-    server = httpd.Server(PORT, baseDir if baseDir else BASE_DIR)
+    _isMaster = isMaster
+    port = MASTER_PORT if isMaster else SLAVE_PORT
+    server = httpd.Server(port, baseDir if baseDir else BASE_DIR)
     server.addHandler('/cgi-bin/wakeserver-get.cgi', wakeserver_get_handler)
     server.addHandler('/cgi-bin/wakeserver-', wakeserver_power_handler, True)
     server.addHandler('/cgi-bin/wakeserver-attribute.cgi',

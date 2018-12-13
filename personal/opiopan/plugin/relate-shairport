@@ -40,7 +40,7 @@ case "$CMD" in
 	rm -f $STOP_TIME
 	if ison "$TVNAME";then
 	    post "$TVNAME" "$STOPCMD"
-	    while ison "$TVNAME" ;do
+	    while ison "$AMPNAME" ;do
 		echo 'tv checking'
 		sleep 0.5
 	    done
@@ -57,7 +57,8 @@ case "$CMD" in
 	    threshold=`expr $SLEEP_DEFFERED - 5`
 	    now=`date +%s`
 	    past=`cat $STOP_TIME`
-	    if [ "$past" != ""  ] && [ `expr $now - $past` -gt $threshold ];then
+	    if [ "$past" != ""  ] && \
+	       [ `expr $now - $past` -gt $threshold ];then
 		if ! ison "$TVNAME";then
 		    post "$AMPNAME" "$STOPCMD"
 		fi
