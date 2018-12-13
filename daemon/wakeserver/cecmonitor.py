@@ -43,6 +43,11 @@ class CECController(threading.Thread):
                 self.monitor.setStatus(self.serverName, self.status)
 
     def run(self):
+        proc = subprocess.Popen(['tvservice', '-off'],
+                                stdout = subprocess.PIPE)
+        if proc:
+            sys.stdout.write('CEC: {0}'.format(proc.stdout.readline()))
+            proc.wait()
         while True:
             self.observe()
             print 'CEC: cec-client has been finished, restart in {0} sec'.\

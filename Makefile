@@ -38,9 +38,8 @@ CGIS			= wakeserver-get.cgi wakeserver-wake.cgi \
 			  wakeserver-attribute.cgi wakeserver-config.cgi
 PLUGINS			= cannon-printe
 
-PERSONAL		= opiopan
-WAKESERVERCONF_SRC	= personal/$(PERSONAL)/wakeserver.conf
-SERVERSCONF_SRC		= personal/$(PERSONAL)/servers.conf
+WAKESERVERCONF_SRC	= $(PERSONAL)/wakeserver.conf
+SERVERSCONF_SRC		= $(PERSONAL)/servers.conf
 
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR) $(BIN_DIR)
@@ -108,7 +107,7 @@ copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 	cp -R html/* $(HTML_DIR) || exit 1
 	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
 	cp -R bin/* $(BIN_DIR) || exit 1
-	cp -R personal/$(PERSONAL)/* $(BASE_DIR) || exit 1
+	cp -R $(PERSONAL)/* $(BASE_DIR) || exit 1
 
 commands: sbin
 	make -C src
@@ -139,7 +138,7 @@ homebridge-plugin: $(HOMEBRIDGE)
 	npm install -g homebridge/homebridge-wakeserver
 
 homebridge-config: $(HOMEBRIDGE_CONF_DIR)
-	cp personal/$(PERSONAL)/homebridge/config.json $(HOMEBRIDGE_CONF_DIR)
+	cp $(PERSONAL)/homebridge/config.json $(HOMEBRIDGE_CONF_DIR)
 	chown homebridge $(HOMEBRIDGE_CONF_DIR)/config.json
 
 $(HOMEBRIDGE_DEFAULT): homebridge/homebridge
