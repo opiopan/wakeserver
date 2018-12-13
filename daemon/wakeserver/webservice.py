@@ -4,6 +4,7 @@ import time
 import json
 import subprocess
 import httpd
+from wakeserver import network
 
 BASE_DIR = '/var/www/wakeserver/html'
 MASTER_PORT = 8080
@@ -214,6 +215,17 @@ def serverHandler(req, resp):
                 err = setServerStatus(server, scheme, power, reboot, plugin)
                 if err:
                     resp.replyError(500, err)
+                    
+def remoteHandler(req, resp):
+    req.parseBody()
+    if req.method != httpd.Method.post or not req.json:
+        resp.replyError(500, 'Invalid method type or body')
+        return
+    rdata = network.applyRemote(req.json)
+    if not rdata:
+        resp.replyError(500, 'Invalid request body')
+        return
+    resp.replyJson(rdata)
 
 def serveForever(monitor, plugins, isMaster = True, baseDir = None):
     global _monitor
@@ -232,4 +244,5 @@ def serveForever(monitor, plugins, isMaster = True, baseDir = None):
                       wakeserver_config_handler)
     server.addHandler('/servers', serversHandler)
     server.addHandler('/servers/', serverHandler, True)
+    server.addHandler('/remote', remoteHandler)
     server.serveForever()
