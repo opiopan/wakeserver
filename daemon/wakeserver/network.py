@@ -4,6 +4,7 @@ import time
 import json
 import socket
 import subprocess
+import requests
 from wakeserver import monitoring
 
 MASTER_SERVICE = '_wakeserver._tcp'
@@ -18,6 +19,8 @@ HOST_KEY = 'host'
 SERVERS_KEY = 'servers'
 NAME_KEY = 'name'
 ISON_KEY = 'isOn'
+
+HTTPTIMEOUT = 10
 
 isMaster = True
 remotes = []
@@ -48,19 +51,36 @@ def applyRemote(data):
 
     return makeSyncData()
 
-def makeSyncData():
+def makeSyncData(server = None):
     global isMaster
     data = {HOST_KEY: HOSTNAME + (MASTER_PORT if isMaster else SLAVE_PORT)}
+    servers = [server] if server else monitoring.monitor.servers
     
     if not isMaster:
         hosts = []
-        for server in monitoring.monitor.servers:
+        for server in servers:
             sdata = {NAME_KEY: server['name'],
                      ISON_KEY: server['status'] == 'on'}
             hosts.append(sdata)
         data[SERVERS_KEY] = hosts
 
     return data
+
+def syncRemote(server = None):
+    global remotes
+    global isMaster
+
+    body = makeSyncData(server)
+    for remote in remotes:
+        try:
+            url = 'http://' + remote + '/remote'
+            print 'NETWORK: synchronizing with {0}'.format(remote)
+            resp = requests.post(url, json = body, timeout = HTTPTIMEOUT)
+            if resp.status_code == requests.codes.ok and isMaster:
+                applyRemote(resp.json())
+        except:
+            print 'NETWORK: error while accessing to {0}'.format(remote)
+            
 
 def initNetwork(ismaster):
     global remotes

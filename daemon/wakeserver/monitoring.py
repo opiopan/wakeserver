@@ -18,9 +18,11 @@ NORMAL_MAX =       15
 monitor = None
 
 class Monitor(threading.Thread) :
-    def __init__(self, conf, pool):
+    def __init__(self, conf, pool, network, isMaster):
         super(Monitor, self).__init__()
         self.conf = conf.servers
+        self.network = network
+        self.isMaster = isMaster
         self.plugins = pool.plugins
         self.servers = []
         self.serversDict = {}
@@ -111,6 +113,8 @@ class Monitor(threading.Thread) :
                     format(name, stStr)
                 server['status']  = stStr
                 self.statusesDict[name]['status'] = stStr
+                if not self.isMaster:
+                    self.network.syncRemote(server)
 
     def setStatusByIndex(self, index, status):
         stStr = 'on' if status else 'off'
@@ -122,6 +126,8 @@ class Monitor(threading.Thread) :
             status['status'] = stStr
             print 'MONITOR: change "{0}" status to {1}'.\
                 format(name, stStr)
+            if not self.isMaster:
+                self.network.syncRemote(server)
         
                 
     def run(self):

@@ -79,12 +79,13 @@ def main():
             
         pool = plugin.PluginPool(conf, 
                                  pluginDir = PLUGIN_DIR)
-        monitor = monitoring.Monitor(conf, pool)
+        monitor = monitoring.Monitor(conf, pool, network, isMaster)
         monitoring.monitor = monitor
         monitor.start()
 
         cecmonitor.startCECmonitor(conf, monitor)
 
+        network.syncRemote()
         webservice.serveForever(monitor, pool, isMaster, WEB_ROOT)
 
 if __name__ == '__main__':

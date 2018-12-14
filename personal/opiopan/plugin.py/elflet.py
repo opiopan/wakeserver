@@ -55,6 +55,7 @@ class ElfletShadow:
                 monitoring.monitor.setStatus(self.serverName, self.power)
         if "Attributes" in data:
             self.attrs =data["Attributes"]
+            
     def url(self):
         return "http://" + self.nodeName + "/shadow/" + self.shadowName
 
