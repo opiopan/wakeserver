@@ -11,19 +11,24 @@ RETRY_INTERVAL = 60
 ONSTR1 = "on'\n"
 ONSTR2 = "in transition from standby to on'\n"
 
-OPTION_KEY = 'cec-observer'
+OPTION_KEY = 'cec-observers'
 SERVER_KEY = 'server'
 DEVICE_KEY = 'device-num'
 
 controller = None
 
-class CECController(threading.Thread):
-    def __init__(self, monitor, serverName, device = 0):
-        super(CECController, self).__init__()
-        self.monitor = monitor
+class Target:
+    def __init__(self, serverName, device):
         self.serverName = serverName
         self.device = device
         self.pattern = re.compile(MSGPATTERN.format(self.device))
+        self.status = False
+
+class CECController(threading.Thread):
+    def __init__(self, monitor, targets):
+        super(CECController, self).__init__()
+        self.monitor = monitor
+        self.targets = targets
         self.status = False
 
     def observe(self):
@@ -34,13 +39,15 @@ class CECController(threading.Thread):
             line = proc.stdout.readline()
             if not line :
                 return proc.wait()
-            result = self.pattern.search(line)
-            if result:
-                ststr = line[result.end():]
-                status = ststr == ONSTR1 or ststr == ONSTR2
-                self.status = status
-                print 'CEC: TV status = {0}'.format(self.status)
-                self.monitor.setStatus(self.serverName, self.status)
+            for target in self.targets:
+                result = target.pattern.search(line)
+                if result:
+                    ststr = line[result.end():]
+                    status = ststr == ONSTR1 or ststr == ONSTR2
+                    target.status = status
+                    print 'CEC: TV status = {0}'.format(target.status)
+                    self.monitor.setStatus(target.serverName, target.status)
+                    break
 
     def run(self):
         proc = subprocess.Popen(['tvservice', '-off'],
@@ -60,11 +67,14 @@ def startCECmonitor(conf, monitor):
     if controller:
         return
     
-    option = conf.main[OPTION_KEY] if OPTION_KEY in conf.main else None
-    if option:
-        server = option[SERVER_KEY] if SERVER_KEY in option else None
-        device = option[DEVICE_KEY] if DEVICE_KEY in option else 0
+    option = conf.main[OPTION_KEY] if OPTION_KEY in conf.main else []
+    targets = []
+    for target in option:
+        server = target[SERVER_KEY] if SERVER_KEY in target else None
+        device = target[DEVICE_KEY] if DEVICE_KEY in target else 0
         if server:
-            controller = CECController(monitor, server, device)
-            controller.start()
+            targets.append(Target(server, device))
 
+    if len(targets) > 0:
+        controller = CECController(monitor, targets)
+        controller.start()

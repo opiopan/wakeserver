@@ -6,6 +6,7 @@ import time
 import json
 import threading
 import subprocess
+import network
 
 STATUS_FILE =      "/run/wakeserver/status"
 STATUS_FILE_NEW =  "/run/wakeserver/status.new"
