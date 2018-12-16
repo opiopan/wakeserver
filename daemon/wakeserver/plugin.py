@@ -12,8 +12,14 @@ PLUGIN_DIR = "/var/www/wakeserver/plugin.py"
 PLUGIN_OLD_DIR = "/var/www/wakeserver/plugin"
 DIAG_INTERVAL = 1
 
+PLUGIN_OPTION_KEY = 'plugin-option'
+
 class Plugin:
     needPolling = True
+
+    def option(self, server):
+        return server[PLUGIN_OPTION_KEY] \
+            if PLUGIN_OPTION_KEY in server else None
     
     def diagnose(self, server):
         return False
