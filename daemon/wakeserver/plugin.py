@@ -157,7 +157,7 @@ class PluginPool:
             for fname in files:
                 if not fname in self.plugins:
                     self.plugins[fname] = _OldPlugin(fname)
-                    pluginnames.append(fname + ': ' +
+                    pluginnames.append(fname + ' ' +
                                        PLUGIN_OLD_DIR + '/' + fname)
 
         print 'PLUGIN: {0} plugins are loaded'.format(len(self.plugins))

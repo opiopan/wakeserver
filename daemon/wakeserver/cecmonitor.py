@@ -5,6 +5,7 @@ import json
 import re
 import threading
 import subprocess
+import Queue
 
 MSGPATTERN = r"\({0}\): power status changed from.*' to '"
 RETRY_INTERVAL = 60
@@ -24,20 +25,80 @@ class Target:
         self.pattern = re.compile(MSGPATTERN.format(self.device))
         self.status = False
 
+class Command:
+    COMMAND = 0
+    QUIT = -1
+    def __init__(self, cmdstr):
+        self.kind = self.COMMAND if cmdstr else self.QUIT
+        self.value = cmdstr
+
+    def isQuit(self):
+        return self.kind == self.QUIT
+
+class CECCmdSender(threading.Thread):
+    def __init__(self, proc):
+        super(CECCmdSender, self).__init__()
+        self.proc = proc
+        self.pipe = self.proc.stdin
+        self.cmdQueue = Queue.Queue()
+
+    def send(self, cmd):
+        self.cmdQueue.put(cmd)
+
+    def quit(self):
+        self.cmdQueue.put(Command(None))
+
+    def run(self):
+        while True:
+            cmd = self.cmdQueue.get()
+            if cmd.isQuit():
+                return
+            try:
+                self.pipe.write(cmd.value + '\n')
+            except:
+                self.proc.terminate()
+                return
+
 class CECController(threading.Thread):
     def __init__(self, monitor, targets):
         super(CECController, self).__init__()
         self.monitor = monitor
         self.targets = targets
         self.status = False
+        self.sender = None
 
+    def powerOn(self, devNum):
+        cmd = Command('on {0}'.format(int(devNum)))
+        if self.sender:
+            self.sender.send(cmd)
+            return True
+        else:
+            return False
+
+    def powerOff(self, devNum):
+        cmd = Command('standby {0}'.format(int(devNum)))
+        if self.sender:
+            self.sender.send(cmd)
+            return True
+        else:
+            return False
+        
     def observe(self):
         proc = subprocess.Popen(['cec-client'],
                                 stdout = subprocess.PIPE,
                                 stdin = subprocess.PIPE)
+        self.sender = CECCmdSender(proc)
+        self.sender.start()
+        for target in self.targets:
+            cmd = Command('pow {0}'.format(target.device))
+            self.sender.send(cmd)
+        
         while True:
             line = proc.stdout.readline()
             if not line :
+                self.sender.quit()
+                self.sender.join()
+                self.sender = None
                 return proc.wait()
             for target in self.targets:
                 result = target.pattern.search(line)
@@ -45,7 +106,8 @@ class CECController(threading.Thread):
                     ststr = line[result.end():]
                     status = ststr == ONSTR1 or ststr == ONSTR2
                     target.status = status
-                    print 'CEC: TV status = {0}'.format(target.status)
+                    print 'CEC: {0} status = {1}'.format(
+                        target.serverName, target.status)
                     self.monitor.setStatus(target.serverName, target.status)
                     break
 
