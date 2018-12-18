@@ -5,7 +5,10 @@ import sys
 import time
 import json
 import requests
+import urllib
 from wakeserver import monitoring, plugin
+
+DEBUG = 'DEBUG' in os.environ
 
 PLUGIN_NAME = 'remote'
 REMOTE_KEY = 'remote'
@@ -36,22 +39,35 @@ class RemotePlugin(plugin.Plugin):
                 data['reboot'] = needReboot
             if attrs != None:
                 data['attributes'] = attrs
+            serverName = urllib.quote(server['name'])
             url = 'http://{0}:8081/servers/{1}'.format(option['remote'],
-                                                       server['name'])
+                                                       serverName)
+            def proc():
+                resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
+                if not resp.status_code == requests.codes.ok:
+                    print 'remote: slave returnederror ({0})'.format(
+                        resp.status_code)
+                    return False
+                return True
+
+            if DEBUG:
+                return proc()
+            
             try:
-                resp = requests.post(url(), json = data, timeout = HTTPTIMEOUT)
-                return resp.status_code == requests.codes.ok
+                return proc()
             except:
+                print 'remote: fail to access to {0}'.format(url)
                 return False
         return False 
 
     def getAttrs(self, server, keys = None):
         option = self.option(server)
         if REMOTE_KEY in option:
+            serverName = urllib.quote(server['name'])
             url = 'http://{0}:8081/servers/{1}'.format(option['remote'],
-                                                       server['name'])
-            resp = requests.get(self.url(), timeout = HTTPTIMEOUT)
+                                                       serverName)
             try:
+                resp = requests.get(url, timeout = HTTPTIMEOUT)
                 return resp.json()
             except:
                 return None
