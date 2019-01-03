@@ -10,6 +10,8 @@ import requests
 import subprocess
 from wakeserver import monitoring, plugin
 
+DEBUG = 'DEBUG' in os.environ
+
 PLUGIN_NAME = 'regza'
 
 ELFLET_KEY = 'elflet'
@@ -93,9 +95,19 @@ class Controller:
                 }
             }
             url = 'http://{0}/irrc/send'.format(self.option.elflet)
-            try:
+            def proc():
                 resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
-                return resp.status_code == requests.code.ok
+                if resp.status_code != requests.codes.ok:
+                    print 'regza: elflet returned error ({0})'.format(
+                        resp.status_code)
+                    return False
+                return True
+
+            if DEBUG:
+                return proc()
+            
+            try:
+                return proc() 
             except:
                 print 'regza: failed to access REST interface of {0}'\
                     .format(self.option.elflet)

@@ -15,8 +15,7 @@ SERVICE_CONF		= /etc/systemd/system/wakeserver.service
 MQTT_CONF		= /etc/mosquitto/mosquitto.conf
 
 WAKEONLAN		= /usr/bin/wakeonlan
-NODEJS			= /usr/bin/nodejs
-HOMEBRIDGE		= /usr/bin/homebridge
+
 HOMEBRIDGE_CONF_DIR	= /var/homebridge
 HOMEBRIDGE_CONF		= $(HOMEBRIDGE_CONF_DIR)/config.json
 HOMEBRIDGE_SERVICE	= /etc/systemd/system/homebridge.service
@@ -147,8 +146,9 @@ $(HOMEBRIDGE_DEFAULT): homebridge/homebridge
 $(HOMEBRIDGE_SERVICE): homebridge/homebridge.service
 	$(INSTALL) -m644 $< $@
 
-$(HOMEBRIDGE_RUNNER): homebridge/homebridge.run
-	$(INSTALL) -m755 $< $@
+$(HOMEBRIDGE_RUNNER): FORCE
+	m4 -D HOMEBRIDGE=$(HOMEBRIDGE) homebridge/homebridge.run.in > $@
+	chmod 755 $@
 
 $(HOMEBRIDGE_CONF_DIR):
 	useradd --system homebridge
@@ -156,14 +156,8 @@ $(HOMEBRIDGE_CONF_DIR):
 	chown homebridge $@
 
 $(HOMEBRIDGE):
-	curl -sL https://deb.nodesource.com/setup_6.x | bash -
-	apt-get install -y nodejs
 	apt-get install -y libavahi-compat-libdnssd-dev
-	npm install -g --unsafe-perm homebridge hap-nodejs node-gyp
-	cd /usr/lib/node_modules/homebridge || exit 1;\
-	npm install --unsafe-perm bignum
-	cd /usr/lib/node_modules/hap-nodejs/node_modules/mdns || exit 1;\
-	node-gyp BUILDTYPE=Release rebuild
+	npm install -g --unsafe-perm homebridge
 
 pythonpackage: $(PIP)
 	pip install $(PPKGS)
@@ -173,3 +167,6 @@ $(PIP):
 
 $(AVAHI_BROWSE):
 	apt-get install -y avahi-utils
+
+FORCE:
+	@true

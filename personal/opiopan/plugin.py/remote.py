@@ -45,7 +45,7 @@ class RemotePlugin(plugin.Plugin):
             def proc():
                 resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
                 if not resp.status_code == requests.codes.ok:
-                    print 'remote: slave returnederror ({0})'.format(
+                    print 'remote: slave returned error ({0})'.format(
                         resp.status_code)
                     return False
                 return True

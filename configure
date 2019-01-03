@@ -5,8 +5,14 @@ if [ $# != 1 ];then
     exit 1
 fi
 
+if ! node --version > /dev/null 2>&1;then
+    echo "node.js must be installed before running configure script" >&2
+    exit 1
+fi
+
 BASEDIR="$1"
 TYPE=`tool/extjson $BASEDIR/wakeserver.conf server_type`
+NODEDIR=`npm bin -g`
 
 if [ "$TYPE" = "" ];then
     TYPE=master
@@ -18,6 +24,7 @@ if [ "$TYPE" = master ];then
     echo "                 homebridgerestart mqttrestart pythonpackage"
     echo "SERVICE_NAME   = _wakeserver._tcp"
     echo "SERVICE_PORT   = 8080"
+    echo "HOMEBRIDGE     = $NODEDIR/homebridge"
 else
     echo "PERSONAL       = $BASEDIR"
     echo "INSTALL_TARGET = daemonrestart avahirestart pythonpackage"
