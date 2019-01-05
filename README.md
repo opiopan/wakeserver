@@ -2,7 +2,7 @@ Wakeserver
 ====
 
 Wakeserver is a server which works as a home automation hub running on Raspberry Pi.
-You can controll any devices connected to your home network, such as diagnosing status or terning on / off power.<br>
+You can controll any devices connected to your home network, such as diagnosing status or terning on / off power.<br>
 Wakeserver has not only basic device controll capability, but also a mechanism to expands capability by adding plugin modules. 
 
 ## User Interfaces
