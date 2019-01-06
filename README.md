@@ -7,6 +7,7 @@ Wakeserver is a server which works as a home automation hub running on Raspberry
 You can controll any devices connected to your home network, such as diagnosing status or terning on / off power.<br>
 Wakeserver has not only basic device controll capability, but also a mechanism to expands capability by adding plugin modules. 
 
+
 ## User Interfaces
 Wakeserver provides 3 types of user interface.
 
@@ -32,19 +33,30 @@ Wakeserver contains a plugin for [Homebridge](https://github.com/nfarina/homebri
 </p>
 
 ## Requirement
- * **Node v4.3.2 or grater** is required to run [Homebridge](https://github.com/nfarina/homebridge) 
+ * **Python 2.7.\*** must be default python<br>
+   You can check default python version with:
+   ```shell
+   $ python --version
+   ```
+ * **Node v4.3.2 or grater** is required to run [Homebridge](https://github.com/nfarina/homebridge) <br>
+   You can check default Node version with:
+   ```shell
+   $ node --version
+   ```
 
 ## Prepare to Install (Personalize)
 Before intall Wakeserver, you need to prepare some files correspond to your home network. Several examples are [here](https://github.com/opiopan/wakeserver/tree/master/personal).
 Following files should be placed in your configuration directory.
 
-* **wakeserver.conf**: global configuration as JSON (REQUIRED) 
-* **servers.conf**: describing device to be managed as JSON (REQUIRED)
-* **homebridge/config.json**: configuration file for homebridge (OPTIONAL)
-* **html/images/\***: image files correnspondind to each device listed in *wakeserver.conf* (OPTIONAL)
-* **plugin.py/\***: plugin module working in wakeserver daemon process (OPTIONAL)<br>
-This type of plugin module must be writen in python.
-* **plugin/\***: plugin module executing by wakeserver daemon as the other process (OPTIONAL)<br>
+|File|Type|Description|
+|:-|:-|:-|
+|*wakeserver.conf*|REQUIRED|global configuration as JSON|
+|*servers.conf*|REQUIRED|describing device to be managed as JSON|
+|*homebridge/config.json*|OPTIONAL|configuration file for homebridge|
+|*html/images/\**|OPTIONAL|image files correnspondind to each device listed in *wakeserver.conf*|
+|*plugin.py/\**|OPTIONAL|plugin modules working in wakeserver daemon process<br>This type of plugin module must be writen in python.|
+|*plugin/\**|OPTIONAL|plugin modules which is launched by wakeserver daemon as outer process<br>You can use any langage to write this type of plugin modules.|
+
 ## Installation
 Please download the latest Wakeserver codes from github.
 

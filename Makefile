@@ -106,7 +106,7 @@ copyfiles: $(COPIEE_DIRS) $(WAKEONLAN) daemon commands
 	cp -R html/* $(HTML_DIR) || exit 1
 	$(INSTALL) -m 4755 sbin/sussh $(SBIN_DIR)/sussh || exit 1
 	cp -R bin/* $(BIN_DIR) || exit 1
-	cp -R $(PERSONAL)/* $(BASE_DIR) || exit 1
+	cp -R -L $(PERSONAL)/* $(BASE_DIR) || exit 1
 
 commands: sbin
 	make -C src
