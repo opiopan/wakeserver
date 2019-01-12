@@ -15,7 +15,7 @@ from wakeserver import monitoring, plugin
 PLUGIN_NAME = 'onkyo-amp'
 AMPCONTROL_PORT = 60128
 KEEPALIVE_INTERVAL = 30
-RECIEVE_TIMEOUT = 5
+RECEIVE_TIMEOUT = 5
 
 VOLUME_KEY = "volume"
 SELECTOR_KEY = "selector"
@@ -98,11 +98,11 @@ class Command:
                                 len(data), self.SUFFIX) + data
 
 #---------------------------------------------------------------------
-# ISCP reciever / sender
+# ISCP receiver / sender
 #---------------------------------------------------------------------
-class Reciever(threading.Thread):
+class Receiver(threading.Thread):
     def __init__(self, controller):
-        super(Reciever, self).__init__()
+        super(Receiver, self).__init__()
         self.controller = controller
         self.time = time.time()
 
@@ -143,7 +143,7 @@ class Reciever(threading.Thread):
         try:
             proc()
         except:
-            print 'ISCP: recieve error'
+            print 'ISCP: receive error'
             self.controller.resetConnection()
 
 class Sender(threading.Thread):
@@ -206,7 +206,7 @@ class Controller(threading.Thread):
         self.resetEvent = threading.Event()
         self.resetEvent.clear()
         self.sender = None
-        self.reciever = None
+        self.receiver = None
 
     def resetConnection(self):
         self.sockError = True
@@ -255,9 +255,9 @@ class Controller(threading.Thread):
                 self.sock.connect((self.addr, AMPCONTROL_PORT))
                 print 'ISCP: connected to ' + self.addr
                 self.sender = Sender(self)
-                self.reciever = Reciever(self)
+                self.receiver = Receiver(self)
                 self.sender.start()
-                self.reciever.start()
+                self.receiver.start()
                 self.sender.send(Command(ATTR.power))
                 self.sender.send(Command(ATTR.selector))
                 self.sender.send(Command(ATTR.volume))
@@ -270,11 +270,11 @@ class Controller(threading.Thread):
             if self.resetEvent.wait(10):
                 print 'ISCP: reset request is accepted'
                 self.phase = PHASE.shuttingdown
-            elif self.reciever.time > self.sender.time and \
-                 time.time() - self.reciever.time > KEEPALIVE_INTERVAL:
+            elif self.receiver.time > self.sender.time and \
+                 time.time() - self.receiver.time > KEEPALIVE_INTERVAL:
                 self.phase = PHASE.keepalive
-            elif self.reciever.time < self.sender.time and \
-                 time.time() - self.sender.time > RECIEVE_TIMEOUT:
+            elif self.receiver.time < self.sender.time and \
+                 time.time() - self.sender.time > RECEIVE_TIMEOUT:
                 print 'ISCP: response timeout'
                 self.phase = PHASE.shuttingdown
                 
@@ -287,9 +287,9 @@ class Controller(threading.Thread):
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sender.terminate()
             self.sender.join()
-            self.reciever.join()
+            self.receiver.join()
             self.sender = None
-            self.reciever = None
+            self.receiver = None
             self.sock.close()
             self.sock = None
             self.phase = PHASE.notconnected
