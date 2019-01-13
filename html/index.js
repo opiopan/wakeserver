@@ -1,6 +1,7 @@
 var UPDATE_INTERVAL = 3000;
 var UPDATE_INTERVAL_ERROR = 5000;
-var RECONNECT_INTERVAL = 3000;
+var RECONNECT_INTERVAL_1ST = 100;
+var RECONNECT_INTERVAL = 10000;
 var TRANSITION_TIMEOUT = 120 * 1000;
 var transitCount = 0;
 
@@ -210,10 +211,13 @@ function ServerDefinitionList(text){
 //---------------------------------------------------
 // functions to manage websocket
 //---------------------------------------------------
+var reconnectCount = 0;
+
 function establishSocket(){
-    url = 'ws://' + location.hostname + ':9090/'
+    var url = 'ws://' + location.hostname + ':9090/'
     socket = new WebSocket(url)
     socket.onopen = function(ev){
+	reconnectCount = 0;
 	updateServerState()
 	updateHeaderIndicator(true);
     };
@@ -238,7 +242,10 @@ function reconnectSocket(){
 	socket.close();
 	socket = null;
 	updateHeaderIndicator(false);
-	setTimeout("establishSocket()", RECONNECT_INTERVAL);
+	setTimeout("establishSocket()",
+		   reconnectCount ? RECONNECT_INTERVAL :
+		   RECONNECT_INTERVAL_1ST);
+	reconnectCount++;
     }
 }
 

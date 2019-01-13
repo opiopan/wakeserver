@@ -11,12 +11,15 @@ MSGPATTERN = r"\({0}\): power status changed from.*' to '"
 RETRY_INTERVAL = 60
 ONSTR1 = "on'\n"
 ONSTR2 = "in transition from standby to on'\n"
+POLLING_INTERVAL = 10
 
 OPTION_KEY = 'cec-observers'
 SERVER_KEY = 'server'
 DEVICE_KEY = 'device-num'
+POLLING_KEY = 'polling'
 
 controller = None
+pollingThread = None
 
 class Target:
     def __init__(self, serverName, device):
@@ -82,6 +85,15 @@ class CECController(threading.Thread):
             return True
         else:
             return False
+
+    def checkPower(self, devNum):
+        cmd = Command('pow {0}'.format(int(devNum)))
+        if self.sender:
+            self.sender.send(cmd)
+            return True
+        else:
+            return False
+        
         
     def observe(self):
         proc = subprocess.Popen(['cec-client'],
@@ -123,20 +135,41 @@ class CECController(threading.Thread):
                 format(RETRY_INTERVAL)
             time.sleep(RETRY_INTERVAL)
 
+class CECPollingThread(threading.Thread):
+    def __init__(self, devices):
+        super(CECPollingThread, self).__init__()
+        self.devices = devices
+
+    def run(self):
+        global controller
+        while True:
+            time.sleep(POLLING_INTERVAL)
+            if controller:
+                for device in self.devices:
+                    controller.checkPower(device)
 
 def startCECmonitor(conf, monitor):
     global controller
+    global pollingThread
     if controller:
         return
     
     option = conf.main[OPTION_KEY] if OPTION_KEY in conf.main else []
     targets = []
+    pollings = []
     for target in option:
         server = target[SERVER_KEY] if SERVER_KEY in target else None
         device = target[DEVICE_KEY] if DEVICE_KEY in target else 0
+        polling = target[POLLING_KEY] if POLLING_KEY in target else False
         if server:
             targets.append(Target(server, device))
+            if polling:
+                pollings.append(device)
 
     if len(targets) > 0:
         controller = CECController(monitor, targets)
         controller.start()
+
+    if len(pollings) > 0:
+        polingThread = CECPollingThread(pollings)
+        polingThread.start()

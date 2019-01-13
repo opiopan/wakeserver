@@ -11,7 +11,10 @@ import threading
 import paho.mqtt.client as mqtt
 from wakeserver import monitoring, plugin
 
+DEBUG = 'DEBUG' in os.environ
+
 SHADOW_PLUGIN_NAME = "elflet-shadow"
+IR_PLUGIN_NAME = "elflet-ir"
 MQTT_PORT = 1883
 MQTT_KEEPALIVE = 60
 TOPIC = "elflet/shadow"
@@ -193,6 +196,104 @@ class ElfletShadowPlugin(plugin.Plugin):
             else:
                 return attrs
         return None
+
+#---------------------------------------------------------------------
+# elflet IR plugin imprementation
+#---------------------------------------------------------------------
+ELFLET_KEY = 'elflet'
+TRANSFER_KEY = 'transfer'
+PROTOCOL_KEY = 'protocol'
+ON_BITCOUNT_KEY = 'on-bitcount'
+ON_CODE_KEY = 'on-code'
+OFF_BITCOUNT_KEY = 'off-bitcount'
+OFF_CODE_KEY = 'off-code'
+
+class IrOption:
+    def __init__(self, server, option):
+        if option:
+            self.elflet = option[ELFLET_KEY] if ELFLET_KEY in option else None
+            transfer = option[TRANSFER_KEY] if TRANSFER_KEY in option else None
+            self.useIrtx = True if transfer == 'irtx' else None
+            self.protocol = option[PROTOCOL_KEY] \
+                            if PROTOCOL_KEY in option else None
+            if ON_CODE_KEY in option:
+                self.onCode = option[ON_CODE_KEY]
+                self.onBitCount = option[ON_BITCOUNT_KEY] \
+                                  if ON_BITCOUNT_KEY in option \
+                                     else len(onCode) * 4
+            if OFF_CODE_KEY in option:
+                self.offCode = option[OFF_CODE_KEY]
+                self.offBitCount = option[OFF_BITCOUNT_KEY] \
+                                  if OFF_BITCOUNT_KEY in option \
+                                     else len(offCode) * 4
+            else:
+                self.offCode = self.onCode
+                self.offBitCount = self.onBitCount
+        else:
+            self.elflet = None
+            self.protocol = None
+            self.onCode = None
+        if not self.elflet or not self.protocol or not self.onCode:
+            self.elflet = None
+            print 'elflet-ir: mandatory plugin '\
+                  'options are not specified for  {0}'.format(server['name'])
+
+class ElfletIrPlugin(plugin.Plugin):
+    
+    def __init__(self, conf):
+        self.conf = conf
+
+    def diagnose(self, server):
+        return False
+
+    def setStatus(self, server, isOn = None, needReboot = False, attrs = None):
+        if attrs != None and len(attrs) > 0:
+            return False
+        if isOn != None:
+            option = IrOption(server, self.option(server))
+            return self.issue(option, isOn)
+        
+        return True
+
+    def getAttrs(self, server, keys = None):
+        return None
+
+    def issue(self, option, isOn):
+        if not option.elflet:
+            return False
+        code = option.onCode if isOn else option.offCode
+        bits = option.onBitCount if isOn else option.offCode
+        if option.useIrtx:
+            args = ['irtx', '-b', str(bits), option.elflet,
+                    option.protocol.lower(), code]
+            proc = subprocess.Popen(args)
+            return proc.wait() == 0
+        else:
+            data = {
+                'FormatedIRStream': {
+                    'Protocol': option.protocol.upper(),
+                    'BitCount': bits,
+                    'Data': code
+                }
+            }
+            url = 'http://{0}/irrc/send'.format(option.elflet)
+            def proc():
+                resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
+                if resp.status_code != requests.codes.ok:
+                    print 'elflet-ir: elflet returned error ({0})'.format(
+                        resp.status_code)
+                    return False
+                return True
+
+            if DEBUG:
+                return proc()
+            
+            try:
+                return proc()
+            except:
+                print 'elflet: failed to access REST interface of {0}'\
+                    .format(self.option.elflet)
+                return False
     
 #---------------------------------------------------------------------
 # plugin entry point
@@ -209,4 +310,7 @@ def wakeserverPlugin(conf):
         _subscriber = Subscriber(conf)
         _subscriber.start()
         
-    return [(SHADOW_PLUGIN_NAME, ElfletShadowPlugin(conf))]
+    return [
+        (SHADOW_PLUGIN_NAME, ElfletShadowPlugin(conf)),
+        (IR_PLUGIN_NAME, ElfletIrPlugin(conf))
+    ]
