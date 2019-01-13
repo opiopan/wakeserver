@@ -7,6 +7,7 @@ import json
 import threading
 import subprocess
 import network
+import wsservice
 
 STATUS_FILE =      "/run/wakeserver/status"
 STATUS_FILE_NEW =  "/run/wakeserver/status.new"
@@ -38,6 +39,7 @@ class Monitor(threading.Thread) :
         for group in self.conf:
             servers = group["servers"];
             for server in servers:
+                server['index'] = len(self.servers)
                 self.servers.append(server)
                 self.serversDict[server['name']] = server
                 newserver = dict(server)
@@ -114,6 +116,7 @@ class Monitor(threading.Thread) :
                     format(name, stStr)
                 server['status']  = stStr
                 self.statusesDict[name]['status'] = stStr
+                wsservice.sendStatus(server['index'], stStr)
                 if not self.isMaster:
                     self.network.syncRemote(server)
 
@@ -127,6 +130,7 @@ class Monitor(threading.Thread) :
             status['status'] = stStr
             print 'MONITOR: change "{0}" status to {1}'.\
                 format(name, stStr)
+            wsservice.sendStatus(server['index'], stStr)
             if not self.isMaster:
                 self.network.syncRemote(server)
         

@@ -1,5 +1,6 @@
 var UPDATE_INTERVAL = 3000;
 var UPDATE_INTERVAL_ERROR = 5000;
+var RECONNECT_INTERVAL = 3000;
 var TRANSITION_TIMEOUT = 120 * 1000;
 var transitCount = 0;
 
@@ -12,6 +13,7 @@ var defaults = {
 var clickEvent="click";
 
 var serverList = [];
+var socket = null;
 
 var userAgent = (function(u){
     var mobile = {
@@ -126,8 +128,6 @@ var userAgent = (function(u){
 	    });
 	});
 
-	setTimeout("updateServerState()", UPDATE_INTERVAL);
-
 	//---------------------------------------------------
 	// set up inital state of controls in drawer menu
 	//---------------------------------------------------
@@ -174,6 +174,11 @@ var userAgent = (function(u){
 	// reset about sheet
 	//---------------------------------------------------
 	resetAboutSheet();
+
+	//---------------------------------------------------
+	// establish WebSocket
+	//---------------------------------------------------
+	establishSocket();
 	
 	return false;
     });
@@ -202,6 +207,50 @@ function ServerDefinitionList(text){
     return object;
 }
 
+//---------------------------------------------------
+// functions to manage websocket
+//---------------------------------------------------
+function establishSocket(){
+    url = 'ws://' + location.hostname + ':9090/'
+    socket = new WebSocket(url)
+    socket.onopen = function(ev){
+	updateServerState()
+	updateHeaderIndicator(true);
+    };
+    socket.onerror = function(error){
+	reconnectSocket();
+    };
+
+    socket.onclose = function(){
+	reconnectSocket();
+    }
+    socket.onmessage = function(ev){
+	data = JSON.parse(ev.data);
+	(function($){
+	    target = $('.server-list .server-entry').eq(data.index);
+	    applyServerState(target, data);
+	})(jQuery);
+    }
+}
+
+function reconnectSocket(){
+    if (socket){
+	socket.close();
+	socket = null;
+	updateHeaderIndicator(false);
+	setTimeout("establishSocket()", RECONNECT_INTERVAL);
+    }
+}
+
+function updateHeaderIndicator(status){
+    (function($){
+	if (status){
+	    $('header .logo').removeClass('error-logo');
+	}else{
+	    $('header .logo').addClass('error-logo');
+	}
+    })(jQuery);
+}
 
 //---------------------------------------------------
 // functions to update server entry
@@ -219,12 +268,11 @@ function updateServerState(){
 		    applyServerState($(this), servers[i]);
 		    i++;
 		});
-		$('header .logo').removeClass('error-logo');
-		setTimeout("updateServerState()", UPDATE_INTERVAL);
+		updateHeaderIndicator(true);
 	    },
 	    error: function(xhr, textStatus, errorThrown) {
-		$('header .logo').addClass('error-logo');
-		setTimeout("updateServerState()", UPDATE_INTERVAL_ERROR);
+		updateHeaderIndicator(false);
+		reconnectSocket();
 	    }
 	});
     })(jQuery);

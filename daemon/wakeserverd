@@ -86,6 +86,7 @@ def main():
         cecmonitor.startCECmonitor(conf, monitor)
 
         network.syncRemote()
+        wsservice.startService(conf)
         webservice.serveForever(monitor, pool, isMaster, WEB_ROOT)
 
 if __name__ == '__main__':
