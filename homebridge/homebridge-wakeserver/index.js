@@ -1,8 +1,9 @@
 var fs = require('fs');
 var request = require('request');
 var webweather = require('./util/webweather.js');
+var websocketClient = require('websocket').client;
 
-var CONFIG = '/run/wakeserver/status.full';
+var CONFIG = '/var/www/wakeserver/servers.conf';
 var STATUS = '/run/wakeserver/status';
 var Service, Characteristic, Accessory, uuid;
 
@@ -289,9 +290,17 @@ function Wakeserver(log){
     this.log = log;
     var config = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
 
-    this.servers = [];
-    this.statuses = JSON.parse(fs.readFileSync(STATUS, 'utf8'));
+    this.PHASE_INIT = 0;
+    this.PHASE_CONNECTING = 1;
+    this.PAHSE_CONNECTED = 2;
+    this.connection = null;
+    this.phase = this.PHASE_INIT;
 
+    this.servers = [];
+    this.statuses = [];
+    var status = function(){};
+    status.status = "off";
+    
     index =0;
     for (var i = 0; i < config.length; i++){
 	var entry = config[i];
@@ -301,19 +310,77 @@ function Wakeserver(log){
 		var serverConfig = group.servers[j];
 		var server = new Server(this, index, serverConfig);
 		this.servers.push(server);
+		this.statuses.push(status);
 		index++;
 	    }
 	}else{
 	    var server = new Server(this, index, entry);
 	    this.servers.push(seerver);
+	    this.statuses.push(status);
 	    index++;
 	}
     }
 
-    this.interval = setInterval(function(){
-	//this.log.info('update status');
-	this.statuses = JSON.parse(fs.readFileSync(STATUS, 'utf8'));
-    }.bind(this), 1000);
+    this.establishSocket();
+}
+
+Wakeserver.prototype = {
+    establishSocket: function() {
+	if (this.phase != this.PHASE_INIT){
+	    return;
+	}
+	client = new websocketClient();
+
+	client.on('connectFailed', function(error) {
+	    this.phase = this.PHASE_INIT;
+	    this.log.error('failed to connect to wakeserver, ' +
+			   'retry in 10 seconds: ' + error.toString());
+	    setTimeout(function() {
+		this.establishSocket();
+	    }.bind(this), 10 * 1000)
+	}.bind(this));
+
+	client.on('connect', function(connection) {
+	    this.phase = this.PHASE_CONNECTED;
+	    this.connection = connection;
+	    this.log.info('connected to wakeserverd');
+	    connection.on('close', function() {
+		this.phase = this.PHASE_INIT;
+		this.connection = null;
+		this.log.error('close connection with  wakeserver, ' +
+				 'reconnect in 10 seconds');
+		setTimeout(function() {
+		    this.establishSocket();
+		}.bind(this), 10 * 1000)
+	    }.bind(this));
+	    connection.on('message', function(message) {
+		if (message.type === 'utf8') {
+		    data = JSON.parse(message.utf8Data);
+		    this.statuses[data.index].status = data.status;
+		    this.log.info('change No. ' + data.index +
+				  ' to ' + data.status);
+		}
+	    }.bind(this));
+	    
+	    this.updateStatuses();
+	}.bind(this));
+
+	this.phase = this.PHASE_CONNECTING;
+	this.socket = null;
+	client.connect('ws://localhost:9090/');
+    },
+    
+    updateStatuses: function() {
+	request({
+	    url: 'http://localhost:8080/cgi-bin/wakeserver-get.cgi',
+	    method: 'GET'
+	}, function(error, response, body) {
+	    this.log.info('fetch and update all accessory statuses');
+	    if (!error){
+		this.statuses = JSON.parse(body);
+	    }
+	}.bind(this));
+    }
 }
 
 function Server(wakeserver, index, config) {

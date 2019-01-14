@@ -13,7 +13,7 @@ STATUS_FILE =      "/run/wakeserver/status"
 STATUS_FILE_NEW =  "/run/wakeserver/status.new"
 STATUS_FILE_FULL = "/run/wakeserver/status.full"
 INTERVAL =         1
-INTERVAL_WRITE =   2
+INTERVAL_WRITE =   10 * 60 * 60
 OPERATIVE_MAX =    3
 NORMAL_MAX =       15
 
@@ -89,6 +89,13 @@ class Monitor(threading.Thread) :
         nmThreadNum = int((len(self.normalServers) + NORMAL_MAX - 1) / \
                               NORMAL_MAX)
 
+        print 'MONITOR: {0} servers to monitor as polling:'.format(
+            len(self.operativeServers) + len(self.normalServers))
+        print '    High Frequency Thrad:   {} (for {} servers)'.format(
+            hfThreadNum, len(self.operativeServers))
+        print '    Normal Frequency Thrad: {} (for {} servers)'.format(
+            nmThreadNum, len(self.normalServers))
+
         self.hfThread = []
         for i in range(hfThreadNum):
             self.hfThread.append(threading.Thread(
@@ -146,9 +153,6 @@ class Monitor(threading.Thread) :
         
         while True:
             time.sleep(INTERVAL_WRITE)
-            with open(STATUS_FILE_NEW, "w") as f:
-                json.dump(self.statuses, f)
-            os.rename(STATUS_FILE_NEW, STATUS_FILE)
 
 def diagServers(servers, statuses, targets, interval, groupNum, current,
                 plugins, monitor):
