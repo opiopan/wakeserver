@@ -1,0 +1,40 @@
+{
+    "bridge": {
+        "name": "Wakeserver Portal",
+        "username": "CC:22:3D:E3:CE:43",
+	
+	"manufacturer": "opiopan",
+	"model": "Wakeserver brigde",
+	"serialNumber": "00:00:00:00:02:01",
+
+        "port": 51826,
+        "pin": "123-45-678"
+    },
+
+    "platforms": [
+        {
+	    "platform": "Wakeserver",
+	    "name": "Wakeserver",
+	    "enableOnlySwitch": false,
+
+	    "ignoreServers" : [
+	    ],
+
+	    "ignoreSpecialCapability" : [
+		"TV @living #1"
+	    ],
+	    
+	    "accessories": [
+		{
+		    "name": "Outer Temperature",
+		    "type": "psensor",
+		    "web": {
+			"areaCode": "000",
+			"groupCode": "37"
+		    }
+		}
+	    ]
+        }
+    ]
+    
+}
