@@ -49,6 +49,8 @@ PPKGS			= requests paho-mqtt \
 
 AVAHI_BROWSE		= /usr/bin/avahi-browse
 
+NODEPPKG		= [ "$(SKIP_DEPPKG)" != "" ]
+
 include .config.mk
 
 all:
@@ -132,10 +134,10 @@ $(HTML_DIR) $(DAEMON_DIR) $(DAEMONLIB_DIR) $(PLUGIN_DIR):
 	$(INSTALL) -d $@
 
 $(WAKEONLAN):
-	apt-get -y install wakeonlan
+	$(NODEPPKG) || apt-get -y install wakeonlan
 
 homebridge-plugin: $(HOMEBRIDGE)
-	npm install -g homebridge/homebridge-wakeserver
+	$(NODEPPKG) || npm install -g homebridge/homebridge-wakeserver
 
 homebridge-config: $(HOMEBRIDGE_CONF_DIR)
 	cp $(PERSONAL)/homebridge/config.json $(HOMEBRIDGE_CONF_DIR)
@@ -157,17 +159,17 @@ $(HOMEBRIDGE_CONF_DIR):
 	chown homebridge $@
 
 $(HOMEBRIDGE):
-	apt-get install -y libavahi-compat-libdnssd-dev
-	npm install -g --unsafe-perm homebridge
+	$(NODEPPKG) || apt-get install -y libavahi-compat-libdnssd-dev
+	$(NODEPPKG) || npm install -g --unsafe-perm homebridge
 
 pythonpackage: $(PIP)
-	pip install $(PPKGS)
+	$(NODEPPKG) || pip install $(PPKGS)
 
 $(PIP):
 	curl -kL https://bootstrap.pypa.io/get-pip.py | python
 
 $(AVAHI_BROWSE):
-	apt-get install -y avahi-utils
+	$(NODEPPKG) || apt-get install -y avahi-utils
 
 FORCE:
 	@true
