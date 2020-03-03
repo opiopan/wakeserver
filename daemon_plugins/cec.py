@@ -11,7 +11,7 @@ PLUGIN_NAME = 'cec-device'
 DEVICE_KEY = 'device-num'
             
 #---------------------------------------------------------------------
-# regza plugin imprementation
+# HDMI CEC device plugin imprementation
 #---------------------------------------------------------------------
 class CECPlugin(plugin.Plugin):
     def __init__(self, conf):
