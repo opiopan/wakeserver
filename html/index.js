@@ -608,6 +608,7 @@ var dashboardMenuConf = {
 function showDashboard(server, $indicator, isRunning, isInTransition){
     (function($) {
 	var scheme = server["scheme"];
+	var operations = scheme["operations"];
 	var services = scheme["services"];
 	var $menues = $('#dashboard #dashboard-menu').empty();
 
@@ -644,6 +645,23 @@ function showDashboard(server, $indicator, isRunning, isInTransition){
 		});
 		closeDashboard();
 	    }).prepend($icon);
+	}
+
+	for (var i in operations){
+	    var op = operations[i];
+	    if (isRunning || service.enable == "always"){
+		var $icon = $('<div></div>').attr({
+		    "class": "icon"
+		}).append(svgInLib(op.type));
+		
+		$('<a>' + op.description + '</a>').appendTo($menues).attr({
+		    "class": "dmenu-item"
+		}).on(clickEvent, function(){
+		    setServerAttr(server.name, op.attribute, op.value,
+				  function(){});
+		    closeDashboard();
+		}).prepend($icon);
+	    }
 	}
 
 	for (var i in services){
@@ -710,7 +728,7 @@ function closeDashboard(){
 }
 
 //---------------------------------------------------
-// wake up & sleep requestor
+// server control requestor
 //---------------------------------------------------
 function wakeupServer(server, $indicator, callback){
     (function($) {
@@ -860,6 +878,24 @@ function rebootServer(serverName, $indicator, callback){
 	    }, TRANSITION_TIMEOUT);
 
 	    callback();
+	});
+    })(jQuery);
+}
+
+function setServerAttr(serverName, attribute, value, callback){
+    (function($) {
+	var attr = {}
+	attr[attribute] = value
+	
+	$.ajax({
+	    type: "POST",
+	    url: "servers/" + encodeURIComponent(serverName),
+	    data: JSON.stringify({'attributes': attr}),
+	    contentType: 'application/json',
+	    dataType: 'text/plain',
+	    success: function(result){
+		callback()
+	    }
 	});
     })(jQuery);
 }
