@@ -229,11 +229,14 @@ function establishSocket(){
 	reconnectSocket();
     }
     socket.onmessage = function(ev){
-	data = JSON.parse(ev.data);
-	(function($){
-	    target = $('.server-list .server-entry').eq(data.index);
-	    applyServerState(target, data);
-	})(jQuery);
+	json = JSON.parse(ev.data);
+	data = json.data
+	if (json.type == 'server'){
+	    (function($){
+		target = $('.server-list .server-entry').eq(data.index);
+		applyServerState(target, data);
+	    })(jQuery);
+	}
     }
 }
 

@@ -39,6 +39,6 @@ def startService(conf):
 
 def sendStatus(index, status):
     global server
-    data = {'index': index, 'status': status}
+    data = {'type': 'server', 'data': {'index': index, 'status': status}}
     if server:
         server.send_message_to_all(json.dumps(data))

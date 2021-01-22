@@ -2,6 +2,7 @@
 
 import os
 import sys
+import traceback
 import time
 import importlib
 import subprocess
@@ -48,6 +49,7 @@ class _OldPlugin(Plugin):
             #    print 'args: {0}'.format(args)
             return subprocess.check_output(args)
         except:
+            print(traceback.format_exc())
             return None
         
     def diagnose(self, server):
@@ -100,6 +102,7 @@ class _Proxy(Plugin):
             return proc()
         except:
             print "Plugin(" + self.name + ") raise exception"
+            print(traceback.format_exc())
             return False
 
     def setStatus(self, server, isOn = None, needReboot = False, attrs = None):
@@ -110,6 +113,7 @@ class _Proxy(Plugin):
         except:
             msg = "Plugin(" + self.name + ") raise exception"
             print msg
+            print(traceback.format_exc())
             return False
 
     def getAttrs(self, server, keys = None):
@@ -120,6 +124,7 @@ class _Proxy(Plugin):
         except:
             msg = "Plugin(" + self.name + ") raise exception"
             print msg
+            print(traceback.format_exc())
             return None
     
 class PluginPool:
@@ -151,6 +156,7 @@ class PluginPool:
                         loadModule()
                     except:
                         print 'PLUGIN: Initializing a plugin failed: ' + name
+                        print(traceback.format_exc())
                         
         if os.path.isdir(PLUGIN_OLD_DIR):
             files = os.listdir(PLUGIN_OLD_DIR)

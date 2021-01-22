@@ -2,9 +2,12 @@
 
 import os
 import sys
+import traceback
 import signal
 import re
+import email.utils
 import time
+import datetime
 import json
 import requests
 import threading
@@ -17,7 +20,8 @@ SHADOW_PLUGIN_NAME = "elflet-shadow"
 IR_PLUGIN_NAME = "elflet-ir"
 MQTT_PORT = 1883
 MQTT_KEEPALIVE = 60
-TOPIC = "elflet/shadow"
+SHADOW_TOPIC = "elflet/shadow"
+SENSOR_TOPIC = "elflet/sensor"
 HTTPTIMEOUT = 10
 DIAG_INTERVAL = 10*60
 
@@ -87,22 +91,42 @@ class ElfletShadow:
 #---------------------------------------------------------------------
 def on_connect(client, userdata, flags, rc):
     print 'elflet-mqtt: connected as code {0}'.format(rc)
-    client.subscribe(client.topic)
+    client.subscribe(SHADOW_TOPIC)
+    client.subscribe(SENSOR_TOPIC)
 
 def on_subscribe(client, userdata, mid, granted_qos):
     print 'elflet-mqtt: accepted subscribe topic: {0}'.format(client.topic)
     
 def on_message(client, userdata, msg):
-    global _shadows
     data = json.loads(msg.payload)
-    nodeName = data['NodeName']
-    shadowName = data['ShadowName']
-    name = nodeName + '.local:' + shadowName
-    if not name in _shadows:
-        print 'elflet-mqtt: unmanaged shadow: {0}'.format(name)
-        _shadows[name] = ElfletShadow(nodeName, shadowName)
-    print 'elflet-mqtt: message from {0}'.format(name)
-    _shadows[name].updateStatus(data)
+    if msg.topic == SHADOW_TOPIC:
+        global _shadows
+        nodeName = data['NodeName']
+        shadowName = data['ShadowName']
+        name = nodeName + '.local:' + shadowName
+        if not name in _shadows:
+            print 'elflet-mqtt: unmanaged shadow: {0}'.format(name)
+            _shadows[name] = ElfletShadow(nodeName, shadowName)
+        print 'elflet-mqtt: shadow message from {0}'.format(name)
+        _shadows[name].updateStatus(data)
+    elif msg.topic == SENSOR_TOPIC:
+        try:
+            nodeName = data['NodeName']
+            date = data['date']
+            temperature = float(data['temperature'])
+            humidity = float(data['humidity'])
+            pressure = float(data['pressure'])
+            tm = email.utils.parsedate(date)
+            ts = time.mktime(tm)
+            dt = datetime.datetime.fromtimestamp(ts)
+            if monitoring.monitor:
+                monitoring.monitor.updateRoomEnv(
+                    nodeName, dt, temperature, humidity, pressure)
+            print('elflet-mqtt: sensor message from {0}: '
+                  '{1}deg, {2}%, {3}hPa'.format(
+                      nodeName, temperature, humidity, pressure))
+        except:
+            print(traceback.format_exc())
 
 class Subscriber(threading.Thread):
     def __init__(self, conf):
@@ -113,7 +137,6 @@ class Subscriber(threading.Thread):
         time.sleep(1)
         
         client = mqtt.Client(protocol=mqtt.MQTTv311)
-        client.topic = TOPIC
         client.on_connect = on_connect
         client.on_subscribe = on_subscribe
         client.on_message = on_message

@@ -3,11 +3,13 @@
 import os
 import sys
 import time
+import datetime
 import json
 import threading
 import subprocess
 import network
 import wsservice
+import roomenv
 
 STATUS_FILE =      "/run/wakeserver/status"
 STATUS_FILE_NEW =  "/run/wakeserver/status.new"
@@ -34,6 +36,7 @@ class Monitor(threading.Thread) :
         self.operativeServers = []
         self.normalServers = []
         self.realtimeServers = []
+        self.rooms = roomenv.Rooms(conf)
 
         i = 0
         for group in self.conf:
@@ -140,6 +143,10 @@ class Monitor(threading.Thread) :
             wsservice.sendStatus(server['index'], stStr)
             if not self.isMaster:
                 self.network.syncRemote(server)
+
+    def updateRoomEnv(self, key, date=datetime.datetime.utcnow(),
+                      temperature=None, humidity=None, pressure=None):
+        self.rooms.update(key, date, temperature, humidity, pressure)
         
                 
     def run(self):
