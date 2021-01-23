@@ -1,6 +1,9 @@
 import os
 import sys
+import traceback
 import time
+import datetime
+import pytz
 import json
 import subprocess
 import httpd
@@ -227,6 +230,81 @@ def remoteHandler(req, resp):
         return
     resp.replyJson(rdata)
 
+def _roomJson(room):
+    return {
+        'name': room.name,
+        'key': room.key,
+        'date': str(room.date) if room.date else None,
+        'timestamp': int(room.date.strftime('%s')) if room.date else None,
+        'temperature': room.temperature,
+        'humidity': room.humidity,
+        'pressure': room.pressure,
+        'representative': room.representative
+    }
+
+def roomsHandler(req, resp):
+    global _monitor
+    req.parseBody()
+    if req.method != httpd.Method.get:
+        resp.replyError(500, 'Invalid method type')
+        return
+
+    rdata = map(lambda r: _roomJson(r), _monitor.rooms.getRooms())
+    resp.replyJson(list(rdata))
+    
+def roomHandler(req, resp):
+    global _monitor
+    req.parseBody()
+    if req.method != httpd.Method.get:
+        resp.replyError(500, 'Invalid method type')
+        return
+
+    key = req.path[7:] # /rooms/<Room Key>
+    room = _monitor.rooms.getRoom(key)
+    if room:
+        resp.replyJson(_roomJson(room))
+    else:
+        resp.replyError(404, 'Specified room is not found')
+
+def roomLogHandler(req, resp):
+    global _monitor
+    req.parseBody()
+    if req.method != httpd.Method.get:
+        resp.replyError(500, 'Invalid method type')
+        return
+
+    key = req.path[10:] # /roomlogs/<Room Key>
+    room = _monitor.rooms.getRoom(key)
+    if not room:
+        resp.replyError(404, 'Specified room is not found')
+        return
+
+    date_from = None
+    date_to = None
+    try:
+        if 'period' in req.params:
+            date_to = datetime.datetime.now(pytz.utc)
+            date_from = date_to - \
+                        datetime.timedelta(
+                            seconds=int(req.params['period'][0]))
+        else:
+            if 'from' in req.params:
+                dt = datetime.datetime.fromtimestamp(
+                    int(req.params['from'][0]))
+                data_from = pytz.utc.localize(dt)
+            if 'to' in req.params:
+                dt = datetime.datetime.fromtimestamp(
+                    int(req.params['to'][0]))
+                data_to = pytz.utc.localize(dt)
+    except:
+        print('----------------------------------------------------------')
+        print(traceback.format_exc())
+        print('----------------------------------------------------------')
+        resp.replyError(500, 'Invalid query parameters')
+        return
+
+    resp.replyJson(_monitor.rooms.getLog(key, date_from, date_to))
+        
 def serveForever(monitor, plugins, isMaster = True, baseDir = None):
     global _monitor
     global _plugins
@@ -245,4 +323,7 @@ def serveForever(monitor, plugins, isMaster = True, baseDir = None):
     server.addHandler('/servers', serversHandler)
     server.addHandler('/servers/', serverHandler, True)
     server.addHandler('/remote', remoteHandler)
+    server.addHandler('/rooms', roomsHandler)
+    server.addHandler('/rooms/', roomHandler, True)
+    server.addHandler('/roomlogs/', roomLogHandler, True)
     server.serveForever()

@@ -8,13 +8,27 @@ import json
 import threading
 import sqlite3
 import datetime
+import pytz
 import wsservice
+
+DEFAULT_LOG_PERIOD = datetime.timedelta(hours=1)
+
+def datetime_converter(val):
+    datepart, timepart = val.split(" ")
+    year, month, day = map(int, datepart.split("-"))
+    timepart_full = timepart.split("+")
+    hours, minutes, seconds = map(int, timepart_full[0].split(":"))
+    val = datetime.datetime(
+        year, month, day, hours, minutes, seconds,
+        tzinfo=pytz.utc)
+    return val
 
 class Room:
     def __init__(self, conf):
         self.name = conf['name']
         self.key = conf['key']
         self.conf = conf
+        self.representative = False
         self.temperature = None
         self.humidity = None
         self.pressure = None
@@ -23,6 +37,9 @@ class Room:
         self.value_file_humidity = None
         self.value_file_pressure = None
 
+        if 'representative' in conf and conf['representative']:
+            self.representative = True
+        
         if 'value-files' in conf:
             vf = conf['value-files']
             if 'temperature' in vf:
@@ -33,7 +50,7 @@ class Room:
                 self.value_file_pressure = vf['pressure']
 
     def update(self, date, temperature, humidity, pressure):
-        self.date = date
+        self.date = date.astimezone(pytz.utc) if date else None
         self.temperature = temperature
         self.humidity = humidity
         self.pressure = pressure
@@ -70,8 +87,7 @@ class Rooms:
                     self.dbpath,
                     detect_types=sqlite3.PARSE_DECLTYPES | \
                                  sqlite3.PARSE_COLNAMES)
-                sqlite3.dbapi2.converters['DATETIME'] = \
-                    sqlite3.dbapi2.converters['TIMESTAMP']
+                sqlite3.dbapi2.converters['DATETIME'] = datetime_converter
                 cur = con.cursor()
                 cur.execute(
                     'CREATE TABLE IF NOT EXISTS envlog '
@@ -89,10 +105,12 @@ class Rooms:
             if 'name' in rconf and 'key' in rconf:
                 room = Room(rconf)
                 self.rooms[room.key] = room
-                if 'representative' in rconf and rconf['representative']:
+                if room.representative:
                     self.representative = room
         if self.representative is None and self.rooms:
-            self.representative = self.rooms[self.rooms_conf[0]]
+            room = self.rooms[self.rooms_conf[0]['key']]
+            room.representative = True
+            self.representative = room
 
     def currentData(self, key):
         return self.rooms[key]
@@ -107,8 +125,7 @@ class Rooms:
                     self.dbpath,
                     detect_types=sqlite3.PARSE_DECLTYPES | \
                                  sqlite3.PARSE_COLNAMES)
-                sqlite3.dbapi2.converters['DATETIME'] = \
-                    sqlite3.dbapi2.converters['TIMESTAMP']
+                sqlite3.dbapi2.converters['DATETIME'] = datetime_converter
                 cur = con.cursor()
                 cur.execute(
                     'INSERT INTO '
@@ -118,3 +135,57 @@ class Rooms:
                      room.humidity, room.pressure])
                 con.commit()
                 con.close()
+
+    def getRooms(self):
+        return map(lambda conf: self.rooms[conf['key']], self.rooms_conf)
+
+    def getRoom(self, key):
+        if key in self.rooms:
+            return self.rooms[key]
+        else:
+            return None
+
+    def getLog(self, key, date_from=None, date_to=None):
+        if key in self.rooms and self.dbpath:
+            if date_from is None:
+                if date_to is None:
+                    date_to = datetime.datetime.now(pytz.utc)
+                date_from = date_to - DEFAULT_LOG_PERIOD
+            elif date_to is None:
+                date_to = date_from + DEFAULT_LOG_PERIOD
+            date_from = date_from.astimezone(pytz.utc)
+            date_to = date_to.astimezone(pytz.utc)
+            def factory(cur, row):
+                return {
+                    'date': str(row[0]),
+                    'timestamp': int(row[0].strftime('%s')),
+                    'temperature': row[1],
+                    'humidity': row[2],
+                    'pressure': row[3]
+                }
+            con = sqlite3.connect(
+                self.dbpath,
+                detect_types=sqlite3.PARSE_DECLTYPES | \
+                             sqlite3.PARSE_COLNAMES)
+            sqlite3.dbapi2.converters['DATETIME'] = datetime_converter
+            con.row_factory = factory
+            cur = con.cursor()
+            for i in range(5):
+                try:
+                    cur.execute(
+                        'SELECT date, temperature, humidity, pressure '
+                        'FROM envlog '
+                        'WHERE key = ? AND date >= ? AND date <= ?',
+                        [key, date_from, date_to])
+                    result = cur.fetchall()
+                except sqlite3.OperationalError:
+                    print('-------------------------------------------------')
+                    print(traceback.format_exc())
+                    print('-------------------------------------------------')
+                    time.sleep(0.5)
+            cur.close()
+            con.close()
+            return result
+            
+        else:
+            return []

@@ -8,6 +8,7 @@ import re
 import email.utils
 import time
 import datetime
+import pytz
 import json
 import requests
 import threading
@@ -118,7 +119,8 @@ def on_message(client, userdata, msg):
             pressure = float(data['pressure'])
             tm = email.utils.parsedate(date)
             ts = time.mktime(tm)
-            dt = datetime.datetime.fromtimestamp(ts)
+            dtl = datetime.datetime.fromtimestamp(ts)
+            dt = pytz.utc.localize(dtl)
             if monitoring.monitor:
                 monitoring.monitor.updateRoomEnv(
                     nodeName, dt, temperature, humidity, pressure)
