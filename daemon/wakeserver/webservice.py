@@ -230,18 +230,6 @@ def remoteHandler(req, resp):
         return
     resp.replyJson(rdata)
 
-def _roomJson(room):
-    return {
-        'name': room.name,
-        'key': room.key,
-        'date': str(room.date) if room.date else None,
-        'timestamp': int(room.date.strftime('%s')) if room.date else None,
-        'temperature': room.temperature,
-        'humidity': room.humidity,
-        'pressure': room.pressure,
-        'representative': room.representative
-    }
-
 def roomsHandler(req, resp):
     global _monitor
     req.parseBody()
@@ -249,7 +237,7 @@ def roomsHandler(req, resp):
         resp.replyError(500, 'Invalid method type')
         return
 
-    rdata = map(lambda r: _roomJson(r), _monitor.rooms.getRooms())
+    rdata = map(lambda r:r.toJson(), _monitor.rooms.getRooms())
     resp.replyJson(list(rdata))
     
 def roomHandler(req, resp):
@@ -262,7 +250,7 @@ def roomHandler(req, resp):
     key = req.path[7:] # /rooms/<Room Key>
     room = _monitor.rooms.getRoom(key)
     if room:
-        resp.replyJson(_roomJson(room))
+        resp.replyJson(room.toJson())
     else:
         resp.replyError(404, 'Specified room is not found')
 

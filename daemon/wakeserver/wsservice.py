@@ -42,3 +42,9 @@ def sendStatus(index, status):
     data = {'type': 'server', 'data': {'index': index, 'status': status}}
     if server:
         server.send_message_to_all(json.dumps(data))
+
+def sendRoomEnv(room):
+    global server
+    data = {'type': 'room', 'data': room.toJson()}
+    if server:
+        server.send_message_to_all(json.dumps(data))

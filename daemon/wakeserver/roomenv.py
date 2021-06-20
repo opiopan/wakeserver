@@ -24,7 +24,7 @@ def datetime_converter(val):
     return val
 
 class Room:
-    def __init__(self, conf):
+    def __init__(self, conf, index):
         self.name = conf['name']
         self.key = conf['key']
         self.conf = conf
@@ -36,6 +36,7 @@ class Room:
         self.value_file_temperature = None
         self.value_file_humidity = None
         self.value_file_pressure = None
+        self.index = index
 
         if 'representative' in conf and conf['representative']:
             self.representative = True
@@ -70,6 +71,20 @@ class Room:
             print('roomenv: path: {0}'.format(path))
             return None
 
+    def toJson(self):
+        return {
+            'name': self.name,
+            'key': self.key,
+            'date': str(self.date) if self.date else None,
+            'timestamp': int(self.date.strftime('%s')) if self.date else None,
+            'temperature': self.temperature,
+            'humidity': self.humidity,
+            'pressure': self.pressure,
+            'representative': self.representative,
+            'index': self.index
+        }
+        
+
 class Rooms:
     def __init__(self, conf):
         self.conf = conf
@@ -101,9 +116,11 @@ class Rooms:
         if 'rooms' in conf.main:
             self.rooms_conf = conf.main['rooms']
 
+        count=0;
         for rconf in self.rooms_conf:
             if 'name' in rconf and 'key' in rconf:
-                room = Room(rconf)
+                room = Room(rconf, count)
+                count+=1
                 self.rooms[room.key] = room
                 if room.representative:
                     self.representative = room
@@ -135,6 +152,7 @@ class Rooms:
                      room.humidity, room.pressure])
                 con.commit()
                 con.close()
+            wsservice.sendRoomEnv(room)
 
     def getRooms(self):
         return map(lambda conf: self.rooms[conf['key']], self.rooms_conf)
@@ -157,11 +175,11 @@ class Rooms:
             date_to = date_to.astimezone(pytz.utc)
             def factory(cur, row):
                 return {
-                    'date': str(row[0]),
-                    'timestamp': int(row[0].strftime('%s')),
-                    'temperature': row[1],
-                    'humidity': row[2],
-                    'pressure': row[3]
+                    #'date': str(row[0]),
+                    'ts': int(row[0].strftime('%s')),
+                    'temp': row[1],
+                    'hum': row[2],
+                    'press': row[3]
                 }
             con = sqlite3.connect(
                 self.dbpath,

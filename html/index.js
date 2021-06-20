@@ -15,6 +15,8 @@ var clickEvent="click";
 
 var serverList = [];
 var socket = null;
+var wakeserverConfig = null;
+var rooms = [];
 
 var userAgent = (function(u){
     var mobile = {
@@ -129,6 +131,31 @@ var userAgent = (function(u){
 	    });
 	});
 
+	//---------------------------------------------------
+	// room environment loading and updating
+	//---------------------------------------------------
+	$.ajax({
+	    type: 'GET',
+	    url: 'cgi-bin/wakeserver-config.cgi',
+	    scriptCharset: 'utf-8',
+	    dataType:'json',
+	    success: function(config) {
+		wakeserverConfig = config;
+		if ('title' in wakeserverConfig){
+		    $('#main-title').text(wakeserverConfig.title)
+		}
+		$.ajax({
+		    type: 'GET',
+		    url: 'rooms',
+		    scriptCharset: 'utf-8',
+		    dataType:'json',
+		    success: function(data) {
+			rooms = data;
+		    }
+		});
+	    }
+	});
+	
 	//---------------------------------------------------
 	// set up inital state of controls in drawer menu
 	//---------------------------------------------------
