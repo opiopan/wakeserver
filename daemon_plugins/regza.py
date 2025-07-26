@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -68,9 +68,9 @@ class Option:
         else:
             self.elflet = None
         if not self.elflet:
-            print 'regza: elflet address is not specified for {0}'.format(
+            print('regza: elflet address is not specified for {0}'.format(
                 server['name']
-            )
+            ))
 
 #---------------------------------------------------------------------
 # command sending function
@@ -98,8 +98,8 @@ class Controller:
             def proc():
                 resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
                 if resp.status_code != requests.codes.ok:
-                    print 'regza: elflet returned error ({0})'.format(
-                        resp.status_code)
+                    print('regza: elflet returned error ({0})'.format(
+                        resp.status_code))
                     return False
                 return True
 
@@ -109,8 +109,8 @@ class Controller:
             try:
                 return proc() 
             except:
-                print 'regza: failed to access REST interface of {0}'\
-                    .format(self.option.elflet)
+                print('regza: failed to access REST interface of {0}'\
+                    .format(self.option.elflet))
                 return False
 
     def togglePower(self):
@@ -119,8 +119,8 @@ class Controller:
     def setChannel(self, channelIn):
         channel = int(channelIn)
         if channel < 1 or channel > 12:
-            print 'regza: unsupported channel number was specified: {0}'\
-                .format(channel)
+            print('regza: unsupported channel number was specified: {0}'\
+                .format(channel))
             return False
         cmd = self.option.command.channel + format(channel, '02x') \
               + format(~channel & 0xff, '02x')
@@ -219,7 +219,7 @@ class RegzaPlugin(plugin.Plugin):
 
         if (isOn != None):
             if self.diagnose(server) == isOn and option.strictPower:
-                print 'regza: changing power state is not necessary'
+                print('regza: changing power state is not necessary')
                 return False
             if not  controller.togglePower():
                 return False

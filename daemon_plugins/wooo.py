@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -92,9 +92,9 @@ class Option:
         else:
             self.elflet = None
         if not self.elflet:
-            print 'wooo: elflet address is not specified for {0}'.format(
+            print('wooo: elflet address is not specified for {0}'.format(
                 server['name']
-            )
+            ))
 
 #---------------------------------------------------------------------
 # command sending function
@@ -107,7 +107,7 @@ class Controller:
         if not self.option.elflet:
             return False
         
-        print 'wooo: command: {0}'.format(cmd)
+        print('wooo: command: {0}'.format(cmd))
         if self.option.useIrtx:
             args = ['irtx', self.option.elflet, 'nec', cmd]
             proc = subprocess.Popen(args)
@@ -124,8 +124,8 @@ class Controller:
                 resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
                 return resp.status_code == requests.code.ok
             except:
-                print 'wooo: failed to access REST interface of {0}'\
-                    .format(self.option.elflet)
+                print('wooo: failed to access REST interface of {0}'\
+                    .format(self.option.elflet))
                 return False
 
     def togglePower(self):
@@ -134,8 +134,8 @@ class Controller:
     def setChannel(self, channelIn):
         channel = int(channelIn)
         if channel < 1 or channel > 12:
-            print 'wooo: unsupported channel number was specified: {0}'\
-                .format(channel)
+            print('wooo: unsupported channel number was specified: {0}'\
+                .format(channel))
             return False
         cmd = self.option.command.channels[channel - 1]
         return self.issue(cmd)
@@ -233,7 +233,7 @@ class WoooPlugin(plugin.Plugin):
 
         if (isOn != None):
             if self.diagnose(server) == isOn and option.strictPower:
-                print 'wooo: changing power state is not necessary'
+                print('wooo: changing power state is not necessary')
                 return False
             if not  controller.togglePower():
                 return False

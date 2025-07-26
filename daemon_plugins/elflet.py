@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -58,7 +58,7 @@ class ElfletShadow:
     def updateStatus(self, data):
         if "IsOn" in data:
             self.power = data["IsOn"]
-            print 'elflet: change shadow to {0}'.format(self.power)
+            print('elflet: change shadow to {0}'.format(self.power))
             if self.serverName and monitoring.monitor:
                 monitoring.monitor.setStatus(self.serverName, self.power)
         if "Attributes" in data:
@@ -91,12 +91,12 @@ class ElfletShadow:
 # mqtt subscriber
 #---------------------------------------------------------------------
 def on_connect(client, userdata, flags, rc):
-    print 'elflet-mqtt: connected as code {0}'.format(rc)
+    print('elflet-mqtt: connected as code {0}'.format(rc))
     client.subscribe(SHADOW_TOPIC)
     client.subscribe(SENSOR_TOPIC)
 
 def on_subscribe(client, userdata, mid, granted_qos):
-    print 'elflet-mqtt: accepted subscribe topic: {0}'.format(client.topic)
+    print('elflet-mqtt: accepted subscribe topic: {0}'.format(client.topic))
     
 def on_message(client, userdata, msg):
     data = json.loads(msg.payload)
@@ -106,9 +106,9 @@ def on_message(client, userdata, msg):
         shadowName = data['ShadowName']
         name = nodeName + '.local:' + shadowName
         if not name in _shadows:
-            print 'elflet-mqtt: unmanaged shadow: {0}'.format(name)
+            print('elflet-mqtt: unmanaged shadow: {0}'.format(name))
             _shadows[name] = ElfletShadow(nodeName, shadowName)
-        print 'elflet-mqtt: shadow message from {0}'.format(name)
+        print('elflet-mqtt: shadow message from {0}'.format(name))
         _shadows[name].updateStatus(data)
     elif msg.topic == SENSOR_TOPIC:
         try:
@@ -154,7 +154,7 @@ class Observer(threading.Thread):
         global _shadows
         super(Observer, self).__init__()
         self.conf = conf
-        print 'elflet: detected shadows:'
+        print('elflet: detected shadows:')
         for group in self.conf.servers:
             for server in group["servers"]:
                 if server["scheme"]["type"] == SHADOW_PLUGIN_NAME:
@@ -163,17 +163,17 @@ class Observer(threading.Thread):
                     node, shadow = getNodeNameAndShadowName(name)
                     _shadows[name] = ElfletShadow(node, shadow,
                                                   serverName = serverName)
-                    print '    ' + name
+                    print('    ' + name)
         
     def run(self):
         global _shadows
         time.sleep(1)
         while True:
             for name in _shadows.keys():
-                print 'elflet: checking ' + name
+                print('elflet: checking ' + name)
                 data = _shadows[name].diagnose()
                 if data != None:
-                    print 'elflet: {0} = {1}'.format(name, data['IsOn'])
+                    print('elflet: {0} = {1}'.format(name, data['IsOn']))
                     _shadows[name].updateStatus(data)
             time.sleep(DIAG_INTERVAL)
     
@@ -260,8 +260,8 @@ class IrOption:
             self.onCode = None
         if not self.elflet or not self.protocol or not self.onCode:
             self.elflet = None
-            print 'elflet-ir: mandatory plugin '\
-                  'options are not specified for  {0}'.format(server['name'])
+            print('elflet-ir: mandatory plugin '\
+                  'options are not specified for  {0}'.format(server['name']))
 
 class ElfletIrPlugin(plugin.Plugin):
     
@@ -305,8 +305,8 @@ class ElfletIrPlugin(plugin.Plugin):
             def proc():
                 resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
                 if resp.status_code != requests.codes.ok:
-                    print 'elflet-ir: elflet returned error ({0})'.format(
-                        resp.status_code)
+                    print('elflet-ir: elflet returned error ({0})'.format(
+                        resp.status_code))
                     return False
                 return True
 
@@ -316,8 +316,8 @@ class ElfletIrPlugin(plugin.Plugin):
             try:
                 return proc()
             except:
-                print 'elflet: failed to access REST interface of {0}'\
-                    .format(self.option.elflet)
+                print('elflet: failed to access REST interface of {0}'\
+                    .format(self.option.elflet))
                 return False
     
 #---------------------------------------------------------------------

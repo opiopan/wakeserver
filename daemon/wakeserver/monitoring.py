@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -60,17 +60,17 @@ class Monitor(threading.Thread) :
                     realTime = plugin and (not plugin.needPolling)
                     if diag == "normallyoff" or diag == 'slave':
                         server["status"] = "off"
-                        print 'MONITOR: skip polling: {0}'.format(
-                            server['name'])
+                        print('MONITOR: skip polling: {0}'.format(
+                            server['name']))
                     elif diag == "alwayson":
                         server["status"] = "on"
-                        print 'MONITOR: skip polling: {0}'.format(
-                            server['name'])
+                        print('MONITOR: skip polling: {0}'.format(
+                            server['name']))
                     elif realTime:
                         server["status"] = 'off'
                         self.realtimeServers.append(i)
-                        print 'MONITOR: skip polling: {0}'.format(
-                            server['name'])
+                        print('MONITOR: skip polling: {0}'.format(
+                            server['name']))
                     else:
                         server["status"] = "off"
                         if "on" in server["scheme"] or \
@@ -92,12 +92,12 @@ class Monitor(threading.Thread) :
         nmThreadNum = int((len(self.normalServers) + NORMAL_MAX - 1) / \
                               NORMAL_MAX)
 
-        print 'MONITOR: {0} servers to monitor as polling:'.format(
-            len(self.operativeServers) + len(self.normalServers))
-        print '    High Frequency Thrad:   {} (for {} servers)'.format(
-            hfThreadNum, len(self.operativeServers))
-        print '    Normal Frequency Thrad: {} (for {} servers)'.format(
-            nmThreadNum, len(self.normalServers))
+        print('MONITOR: {0} servers to monitor as polling:'.format(
+            len(self.operativeServers) + len(self.normalServers)))
+        print('    High Frequency Thrad:   {} (for {} servers)'.format(
+            hfThreadNum, len(self.operativeServers)))
+        print('    Normal Frequency Thrad: {} (for {} servers)'.format(
+            nmThreadNum, len(self.normalServers)))
 
         self.hfThread = []
         for i in range(hfThreadNum):
@@ -122,8 +122,8 @@ class Monitor(threading.Thread) :
             stStr = 'on' if status else 'off'
             server = self.serversDict[name]
             if server['status'] != stStr:
-                print 'MONITOR: change "{0}" status to {1}'.\
-                    format(name, stStr)
+                print('MONITOR: change "{0}" status to {1}'.\
+                    format(name, stStr))
                 server['status']  = stStr
                 self.statusesDict[name]['status'] = stStr
                 wsservice.sendStatus(server['index'], stStr)
@@ -138,8 +138,8 @@ class Monitor(threading.Thread) :
         if server['status'] != stStr:
             server['status']  = stStr
             status['status'] = stStr
-            print 'MONITOR: change "{0}" status to {1}'.\
-                format(name, stStr)
+            print('MONITOR: change "{0}" status to {1}'.\
+                format(name, stStr))
             wsservice.sendStatus(server['index'], stStr)
             if not self.isMaster:
                 self.network.syncRemote(server)

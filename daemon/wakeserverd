@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -64,16 +64,16 @@ def main():
                if 'server_type' in conf.main else 'master'
         isMaster = serverType == 'master'
         
-        print SEP
-        print 'WakeServer daemon:'
-        print '    WAKESERVER_CONF: ' + MAIN_CONF
-        print '    SERVERS_CONF:    ' + SERVERS_CONF
-        print '    WEB_ROOT:        ' + WEB_ROOT
-        print '    PLUGIN_DIR:      ' + PLUGIN_DIR
-        print '    OLD_PLUGIN_DIR:  ' + OLD_PLUGIN_DIR
-        print ''
-        print '    Daemon Type:     ' + serverType
-        print SEP
+        print(SEP)
+        print('WakeServer daemon:')
+        print('    WAKESERVER_CONF: ' + MAIN_CONF)
+        print('    SERVERS_CONF:    ' + SERVERS_CONF)
+        print('    WEB_ROOT:        ' + WEB_ROOT)
+        print('    PLUGIN_DIR:      ' + PLUGIN_DIR)
+        print('    OLD_PLUGIN_DIR:  ' + OLD_PLUGIN_DIR)
+        print('')
+        print('    Daemon Type:     ' + serverType)
+        print(SEP)
 
         network.initNetwork(isMaster)
             

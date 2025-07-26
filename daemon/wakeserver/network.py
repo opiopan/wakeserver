@@ -36,13 +36,13 @@ def applyRemote(data):
                 needToAppend = False
                 break
         if needToAppend:
-            print 'NETWORK: new remote: {}'.format(newhost)
+            print('NETWORK: new remote: {}'.format(newhost))
             remotes.append(newhost)
     else:
         return None
 
     if SERVERS_KEY in data:
-        print 'NETWORK: apply data from: {}'.format(newhost)
+        print('NETWORK: apply data from: {}'.format(newhost))
         for server in data[SERVERS_KEY]:
             name = server[NAME_KEY] if NAME_KEY in server else None
             status = server[ISON_KEY] if ISON_KEY in server else None
@@ -74,12 +74,12 @@ def syncRemote(server = None):
     for remote in remotes:
         try:
             url = 'http://' + remote + '/remote'
-            print 'NETWORK: synchronizing with {0}'.format(remote)
+            print('NETWORK: synchronizing with {0}'.format(remote))
             resp = requests.post(url, json = body, timeout = HTTPTIMEOUT)
             if resp.status_code == requests.codes.ok and isMaster:
                 applyRemote(resp.json())
         except:
-            print 'NETWORK: error while accessing to {0}'.format(remote)
+            print('NETWORK: error while accessing to {0}'.format(remote))
             
 
 def initNetwork(ismaster):
@@ -96,6 +96,6 @@ def initNetwork(ismaster):
             break
         remotes.append(line[:-1])
 
-    print 'NETWORK: detected {0} remotes:'.format(len(remotes))
+    print('NETWORK: detected {0} remotes:'.format(len(remotes)))
     for name in remotes:
-        print '    {0}'.format(name)
+        print('    {0}'.format(name))

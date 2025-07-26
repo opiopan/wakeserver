@@ -53,9 +53,9 @@ class Command:
 
         prefix, hlen, dlen, suffix = self.HEADER.unpack_from(buf, offset)
         if prefix != self.PREFIX or hlen != self.HEADER_LENGTH:
-            print binascii.b2a_hex(buf[offset:])
-            print 'prefix: {0} / hlen: {1}'.format(
-                binascii.b2a(prefix), hlen)
+            print(binascii.b2a_hex(buf[offset:]))
+            print('prefix: {0} / hlen: {1}'.format(
+                binascii.b2a(prefix), hlen))
             return self.INVALID_FORMAT, None
         if self.HEADER_LENGTH + dlen < size:
             return self.TOO_SHORT, None
@@ -113,7 +113,7 @@ class Receiver(threading.Thread):
             while True:
                 buf = self.controller.sock.recv(4096)
                 if not buf:
-                    print 'ISCP: connection closed from amplifier'
+                    print('ISCP: connection closed from amplifier')
                     self.controller.resetConnection()
                     return
                 self.time = time.time()
@@ -126,7 +126,7 @@ class Receiver(threading.Thread):
                         pos += pktlen
                         self.controller.applyCommand(cmd)
                     elif rc == cmd.INVALID_FORMAT:
-                        print 'ISCP: protocol error'
+                        print('ISCP: protocol error')
                         self.controller.resetConnection()
                         return
                 if pos == len(data):
@@ -143,7 +143,7 @@ class Receiver(threading.Thread):
         try:
             proc()
         except:
-            print 'ISCP: receive error'
+            print('ISCP: receive error')
             self.controller.resetConnection()
 
 class Sender(threading.Thread):
@@ -174,7 +174,7 @@ class Sender(threading.Thread):
                 self.time = time.time()
                 #time.sleep(0.01)
             except:
-                print 'ISCP: send error'
+                print('ISCP: send error')
                 self.controller.resetConnection()
                 return
 
@@ -215,17 +215,17 @@ class Controller(threading.Thread):
     def applyCommand(self, cmd):
         reflectToTV = False
         if cmd.kind == ATTR.power:
-            print 'ISCP: power = {0}'.format(cmd.value)
+            print('ISCP: power = {0}'.format(cmd.value))
             old = self.power
             self.power = cmd.value
             reflectToTV = True
             if monitoring.monitor:
                 monitoring.monitor.setStatus(self.serverName, self.power)
         elif cmd.kind == ATTR.volume:
-            print 'ISCP: volume = {0}'.format(cmd.value)
+            print('ISCP: volume = {0}'.format(cmd.value))
             self.volume = cmd.value
         elif cmd.kind == ATTR.selector:
-            print 'ISCP: selector = {0}'.format(cmd.value)
+            print('ISCP: selector = {0}'.format(cmd.value))
             self.selector = cmd.value
             if monitoring.monitor:
                 monitoring.monitor.setStatus(self.serverName, self.power)
@@ -253,7 +253,7 @@ class Controller(threading.Thread):
                 self.resetEvent.clear()
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.addr, AMPCONTROL_PORT))
-                print 'ISCP: connected to ' + self.addr
+                print('ISCP: connected to ' + self.addr)
                 self.sender = Sender(self)
                 self.receiver = Receiver(self)
                 self.sender.start()
@@ -263,19 +263,19 @@ class Controller(threading.Thread):
                 self.sender.send(Command(ATTR.volume))
                 self.phase = PHASE.connected
             except:
-                print 'ISCP: cannot connect to amplifier, reconnect in 10 sec.'
+                print('ISCP: cannot connect to amplifier, reconnect in 10 sec.')
                 time.sleep(10)
                 
         elif self.phase == PHASE.connected:
             if self.resetEvent.wait(10):
-                print 'ISCP: reset request is accepted'
+                print('ISCP: reset request is accepted')
                 self.phase = PHASE.shuttingdown
             elif self.receiver.time > self.sender.time and \
                  time.time() - self.receiver.time > KEEPALIVE_INTERVAL:
                 self.phase = PHASE.keepalive
             elif self.receiver.time < self.sender.time and \
                  time.time() - self.sender.time > RECEIVE_TIMEOUT:
-                print 'ISCP: response timeout'
+                print('ISCP: response timeout')
                 self.phase = PHASE.shuttingdown
                 
         elif self.phase == PHASE.keepalive:
@@ -293,7 +293,7 @@ class Controller(threading.Thread):
             self.sock.close()
             self.sock = None
             self.phase = PHASE.notconnected
-            print 'ISCP: disconnected, reconnect in 5 sec.'
+            print('ISCP: disconnected, reconnect in 5 sec.')
             time.sleep(5)
             
     def run(self):
@@ -310,7 +310,7 @@ class OnkyoAmpPlugin(plugin.Plugin):
     def __init__(self, conf):
         self.conf = conf
         self.controllers = {}
-        print 'onkyo-amp: detected devices:'
+        print('onkyo-amp: detected devices:')
         for group in self.conf.servers:
             for server in group["servers"]:
                 if server["scheme"]["type"] == PLUGIN_NAME:
@@ -319,7 +319,7 @@ class OnkyoAmpPlugin(plugin.Plugin):
                     controller = Controller(server)
                     self.controllers[addr] = controller
                     controller.start()
-                    print '    ' + addr
+                    print('    ' + addr)
 
     def diagnose(self, server):
         addr = server["ipaddr"]

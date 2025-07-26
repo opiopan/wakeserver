@@ -8,11 +8,11 @@ server = None
 
 def newClient(client, server):
     addr, port = client['address']
-    print 'WS: connected a client: {0}.{1}'.format(addr, port)
+    print('WS: connected a client: {0}.{1}'.format(addr, port))
 
 def leftClient(client, server):
     addr, port = client['address']
-    print 'WS: disconnected a client: {0}.{1}'.format(addr, port)
+    print('WS: disconnected a client: {0}.{1}'.format(addr, port))
 
 
 class WSService(threading.Thread) :

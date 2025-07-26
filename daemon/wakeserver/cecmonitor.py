@@ -118,8 +118,8 @@ class CECController(threading.Thread):
                     ststr = line[result.end():]
                     status = ststr == ONSTR1 or ststr == ONSTR2
                     target.status = status
-                    print 'CEC: {0} status = {1}'.format(
-                        target.serverName, target.status)
+                    print('CEC: {0} status = {1}'.format(
+                        target.serverName, target.status))
                     self.monitor.setStatus(target.serverName, target.status)
                     break
 
@@ -131,8 +131,8 @@ class CECController(threading.Thread):
             proc.wait()
         while True:
             self.observe()
-            print 'CEC: cec-client has been finished, restart in {0} sec'.\
-                format(RETRY_INTERVAL)
+            print('CEC: cec-client has been finished, restart in {0} sec'.\
+                format(RETRY_INTERVAL))
             time.sleep(RETRY_INTERVAL)
 
 class CECPollingThread(threading.Thread):

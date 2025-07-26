@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -46,7 +46,7 @@ class _OldPlugin(Plugin):
                 args += [value]
         try:
             #if cmd != 'diag':
-            #    print 'args: {0}'.format(args)
+            #    print('args: {0}'.format(args))
             return subprocess.check_output(args)
         except:
             print(traceback.format_exc())
@@ -101,7 +101,7 @@ class _Proxy(Plugin):
         try:
             return proc()
         except:
-            print "Plugin(" + self.name + ") raise exception"
+            print("Plugin(" + self.name + ") raise exception")
             print(traceback.format_exc())
             return False
 
@@ -112,7 +112,7 @@ class _Proxy(Plugin):
             return self.origin.setStatus(server, isOn, needReboot, attrs)
         except:
             msg = "Plugin(" + self.name + ") raise exception"
-            print msg
+            print(msg)
             print(traceback.format_exc())
             return False
 
@@ -123,7 +123,7 @@ class _Proxy(Plugin):
             return self.origin.getAttrs(server, keys)
         except:
             msg = "Plugin(" + self.name + ") raise exception"
-            print msg
+            print(msg)
             print(traceback.format_exc())
             return None
     
@@ -155,7 +155,7 @@ class PluginPool:
                     try:
                         loadModule()
                     except:
-                        print 'PLUGIN: Initializing a plugin failed: ' + name
+                        print('PLUGIN: Initializing a plugin failed: ' + name)
                         print(traceback.format_exc())
                         
         if os.path.isdir(PLUGIN_OLD_DIR):
@@ -166,6 +166,6 @@ class PluginPool:
                     pluginnames.append(fname + ' ' +
                                        PLUGIN_OLD_DIR + '/' + fname)
 
-        print 'PLUGIN: {0} plugins are loaded'.format(len(self.plugins))
+        print('PLUGIN: {0} plugins are loaded'.format(len(self.plugins)))
         for name in pluginnames:
-            print '    ' + name
+            print('    ' + name)

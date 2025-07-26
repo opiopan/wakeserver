@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import json
 
 def printUsage():
-    print >> sys.stderr, 'usage: extjson <FILE> <ELEMENT-NAME>'
+    print('usage: extjson <FILE> <ELEMENT-NAME>', file=sys.stderr)
 
 def main():
     args = sys.argv
@@ -18,7 +18,7 @@ def main():
     with open(file) as f:
         object = json.load(f)
         if key in object :
-            print object[key]
+            print(object[key])
 
     return 0
 

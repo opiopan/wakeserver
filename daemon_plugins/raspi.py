@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -34,9 +34,9 @@ class RaspiPlugin(plugin.Plugin):
         option = self.option(server)
         if 'restart-service' in attrs:
             if option is None or not 'user' in option:
-                print ('raspi: "user" option must be specified in '
+                print(('raspi: "user" option must be specified in '
                        '"plugin" section for server [{}]'\
-                       .format(server['name']))
+                       .format(server['name'])))
                 return False
             user = option['user']
             ruser = '{}@'.format(option['ruser']) \

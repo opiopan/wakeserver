@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -45,8 +45,8 @@ class RemotePlugin(plugin.Plugin):
             def proc():
                 resp = requests.post(url, json = data, timeout = HTTPTIMEOUT)
                 if not resp.status_code == requests.codes.ok:
-                    print 'remote: slave returned error ({0})'.format(
-                        resp.status_code)
+                    print('remote: slave returned error ({0})'.format(
+                        resp.status_code))
                     return False
                 return True
 
@@ -56,7 +56,7 @@ class RemotePlugin(plugin.Plugin):
             try:
                 return proc()
             except:
-                print 'remote: fail to access to {0}'.format(url)
+                print('remote: fail to access to {0}'.format(url))
                 return False
         return False 
 
