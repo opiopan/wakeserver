@@ -8,7 +8,7 @@ import requests
 import threading
 import socket
 import struct
-import Queue
+import queue as Queue
 import binascii
 from wakeserver import monitoring, plugin
 

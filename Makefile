@@ -40,7 +40,8 @@ COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR) $(BIN_DIR)
 
 PIP			= /usr/bin/pip
-PPKGS			= requests paho-mqtt pytz websocket-server
+PPKGS			= requests paho-mqtt pytz \
+			  git+https://github.com/Pithikos/python-websocket-server
 
 M4 			= /usr/bin/m4
 AVAHI_BROWSE		= /usr/bin/avahi-browse

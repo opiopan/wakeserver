@@ -20,7 +20,7 @@ class WSService(threading.Thread) :
         global server
         super(WSService, self).__init__()
         self.conf = conf
-        server = WebsocketServer(WSPORT, host='0.0.0.0')
+        server = WebsocketServer('0.0.0.0', WSPORT)
         server.set_fn_new_client(newClient)
         server.set_fn_client_left(leftClient)
 

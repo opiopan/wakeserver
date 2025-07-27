@@ -5,7 +5,7 @@ import json
 import socket
 import subprocess
 import requests
-import wakeserver.monitoring
+from wakeserver import monitoring
 
 MASTER_SERVICE = '_wakeserver._tcp'
 SLAVE_SERVICE = '_wakeserver_slave._tcp'
@@ -90,7 +90,7 @@ def initNetwork(ismaster):
                              SLAVE_SERVICE if isMaster else MASTER_SERVICE],
                             stdout = subprocess.PIPE)
     while proc:
-        line = proc.stdout.readline()
+        line = proc.stdout.readline().decode("utf-8")
         if len(line) == 0:
             proc.wait()
             break

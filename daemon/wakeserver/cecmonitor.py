@@ -106,7 +106,7 @@ class CECController(threading.Thread):
             self.sender.send(cmd)
         
         while True:
-            line = proc.stdout.readline()
+            line = proc.stdout.readline().decode("utf-8")
             if not line :
                 self.sender.quit()
                 self.sender.join()
@@ -124,10 +124,10 @@ class CECController(threading.Thread):
                     break
 
     def run(self):
-        proc = subprocess.Popen(['tvservice', '-off'],
+        proc = subprocess.Popen(['vcgencmd', 'display_power', '0'],
                                 stdout = subprocess.PIPE)
         if proc:
-            sys.stdout.write('CEC: {0}'.format(proc.stdout.readline()))
+            sys.stdout.write('CEC: {0}'.format(proc.stdout.readline().decode("utf-8")))
             proc.wait()
         while True:
             self.observe()
