@@ -1,7 +1,3 @@
-APACHE_CONF		= /etc/apache2/apache2.conf
-PORTS_CONF		= /etc/apache2/ports.conf
-MIME_CONF		= /etc/apache2/mods-available/mime.conf
-SITE_CONF_DIR		= /etc/apache2/sites-available
 BASE_DIR		= /var/www/wakeserver
 HTML_DIR		= /var/www/wakeserver/html
 CGI_DIR			= /usr/lib/cgi-bin
@@ -43,10 +39,10 @@ SERVERSCONF_SRC		= $(PERSONAL)/servers.conf
 COPIEE_DIRS		= $(SITE_CONF_DIR) $(HTML_DIR) $(SBIN_DIR) \
 			  $(PLUGIN_DIR) $(BIN_DIR)
 
-PIP			= /usr/local/bin/pip
-PPKGS			= requests paho-mqtt pytz \
-			  git+https://github.com/Pithikos/python-websocket-server
+PIP			= /usr/bin/pip
+PPKGS			= requests paho-mqtt pytz websocket-server
 
+M4 			= /usr/bin/m4
 AVAHI_BROWSE		= /usr/bin/avahi-browse
 
 NODEPPKG		= [ "$(SKIP_DEPPKG)" != "" ]
@@ -78,7 +74,7 @@ $(MQTT_CONF):
 	mv $(MQTT_CONF) $(MQTT_CONF).bak
 	$(COMMENT) '^log_dest' < $(MQTT_CONF).bak >$(MQTT_CONF) 
 
-avahirestart: $(AVAHI_BROWSE)
+avahirestart: $(AVAHI_BROWSE) $(M4)
 	m4 -D SERVICENAME=$(SERVICE_NAME) \
 	   -D PORT=$(SERVICE_PORT) \
 	   -D ID="`$(EXTJSON) $(WAKESERVERCONF_SRC) uuid`"\
@@ -88,9 +84,6 @@ avahirestart: $(AVAHI_BROWSE)
 	   -D SERVERSHASH="`md5sum $(SERVERSCONF_SRC) | cut -d' ' -f1`"\
 	   avahi/wakeserver.service > /etc/avahi/services/wakeserver.service
 	service avahi-daemon restart
-
-apache2restart:
-	tool/uninstallapacheenv
 
 daemonrestart: copyfiles $(DAEMON) $(SERVICE_CONF) daemonlib
 	systemctl daemon-reload || exit 1
@@ -149,7 +142,7 @@ $(HOMEBRIDGE_DEFAULT): homebridge/homebridge
 $(HOMEBRIDGE_SERVICE): homebridge/homebridge.service
 	$(INSTALL) -m644 $< $@
 
-$(HOMEBRIDGE_RUNNER): FORCE
+$(HOMEBRIDGE_RUNNER): $(M4) FORCE
 	m4 -D HOMEBRIDGE=$(HOMEBRIDGE) homebridge/homebridge.run.in > $@
 	chmod 755 $@
 
@@ -163,13 +156,16 @@ $(HOMEBRIDGE):
 	$(NODEPPKG) || npm install -g --unsafe-perm homebridge
 
 pythonpackage: $(PIP)
-	$(NODEPPKG) || pip install $(PPKGS)
+	$(NODEPPKG) || pip install --break-system-packages $(PPKGS)
 
 $(PIP):
-	curl -kL https://bootstrap.pypa.io/get-pip.py | python
+	apt-get install -y pip
 
 $(AVAHI_BROWSE):
 	$(NODEPPKG) || apt-get install -y avahi-utils
+
+$(M4):
+	$(NODEPPKG) || apt-get install -y m4
 
 FORCE:
 	@true

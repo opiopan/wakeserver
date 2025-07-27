@@ -5,7 +5,7 @@ import json
 import re
 import threading
 import subprocess
-import Queue
+import queue as Queue
 
 MSGPATTERN = r"\({0}\): power status changed from.*' to '"
 RETRY_INTERVAL = 60

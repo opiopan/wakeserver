@@ -1,7 +1,7 @@
-from BaseHTTPServer import HTTPServer
-from BaseHTTPServer import BaseHTTPRequestHandler
-from SocketServer import ThreadingMixIn
-import urlparse
+from http.server import HTTPServer
+from http.server import BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
+import urllib.parse as urlparse
 import urllib
 import cgi
 import json

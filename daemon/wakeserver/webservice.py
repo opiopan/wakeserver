@@ -6,7 +6,7 @@ import datetime
 import pytz
 import json
 import subprocess
-import httpd
+from wakeserver import httpd
 from wakeserver import network
 
 BASE_DIR = '/var/www/wakeserver/html'

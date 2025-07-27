@@ -7,9 +7,9 @@ import datetime
 import json
 import threading
 import subprocess
-import network
-import wsservice
-import roomenv
+import wakeserver.network
+import wakeserver.wsservice
+import wakeserver.roomenv
 
 STATUS_FILE =      "/run/wakeserver/status"
 STATUS_FILE_NEW =  "/run/wakeserver/status.new"

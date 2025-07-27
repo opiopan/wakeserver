@@ -9,7 +9,7 @@ import threading
 import sqlite3
 import datetime
 import pytz
-import wsservice
+import wakeserver.wsservice
 
 DEFAULT_LOG_PERIOD = datetime.timedelta(hours=1)
 

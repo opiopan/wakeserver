@@ -5,7 +5,7 @@ import json
 import socket
 import subprocess
 import requests
-import monitoring
+import wakeserver.monitoring
 
 MASTER_SERVICE = '_wakeserver._tcp'
 SLAVE_SERVICE = '_wakeserver_slave._tcp'
