@@ -38,7 +38,7 @@ class Request:
         self.headers = headers
         self.url = url
         parsed = urlparse.urlparse(self.url)
-        self.path = urllib.unquote(parsed.path)
+        self.path = urllib.parse.unquote(parsed.path)
         self.query = parsed.query
         self.params = urlparse.parse_qs(parsed.query)
         self.body = ''
@@ -98,7 +98,7 @@ class Response:
             return
         self.contentLength = len(self.body)
         self.replyHeader()
-        self.wfile.write(self.body)
+        self.wfile.write(self.body.encode('utf-8'))
         self.phase = Response.Phase.done
         
     def replyJson(self, obj, ctype = None):
@@ -121,7 +121,7 @@ class Response:
             self.replyHeader()
             if onlyHeader:
                 return
-            with open(path) as f:
+            with open(path, 'rb') as f:
                 while True:
                     data = f.read(8 * 1024)
                     if len(data) == 0:
