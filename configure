@@ -14,6 +14,10 @@ BASEDIR="$1"
 TYPE=`tool/extjson $BASEDIR/wakeserver.conf server_type`
 # NODEDIR=`npm bin -g`
 
+if [ `cut -d. -f1 /etc/debian_version` -gt 11 ];then
+    PIPOPT=--break-system-packages
+fi
+
 if [ "$TYPE" = "" ];then
     TYPE=master
 fi
@@ -27,9 +31,11 @@ if [ "$TYPE" = master ];then
     echo "SERVICE_NAME   = _wakeserver._tcp"
     echo "SERVICE_PORT   = 8080"
     echo "HOMEBRIDGE     = $NODEDIR/homebridge"
+    echo "PIPOPT         = $PIPOPT"
 else
     echo "PERSONAL       = $BASEDIR"
     echo "INSTALL_TARGET = daemonrestart avahirestart pythonpackage"
     echo "SERVICE_NAME   = _wakeserver_slave._tcp"
     echo "SERVICE_PORT   = 8081"
+    echo "PIPOPT         = $PIPOPT"
 fi > .config.mk

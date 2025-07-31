@@ -157,7 +157,7 @@ $(HOMEBRIDGE):
 	$(NODEPPKG) || npm install -g --unsafe-perm homebridge
 
 pythonpackage: $(PIP)
-	$(NODEPPKG) || pip install --break-system-packages $(PPKGS)
+	$(NODEPPKG) || pip install $(PIPOPT) $(PPKGS)
 
 $(PIP):
 	apt-get install -y pip
