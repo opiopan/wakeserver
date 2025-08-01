@@ -92,11 +92,13 @@ class ElfletShadow:
 #---------------------------------------------------------------------
 def on_connect(client, userdata, flags, rc):
     print('elflet-mqtt: connected as code {0}'.format(rc))
-    client.subscribe(SHADOW_TOPIC)
-    client.subscribe(SENSOR_TOPIC)
+    (result, mid) = client.subscribe(SHADOW_TOPIC)
+    userdata.subscriptions[mid] = SHADOW_TOPIC
+    (result, mid) = client.subscribe(SENSOR_TOPIC)
+    userdata.subscriptions[mid] = SENSOR_TOPIC
 
 def on_subscribe(client, userdata, mid, granted_qos):
-    print('elflet-mqtt: accepted subscribe topic: {0}'.format(client.topic))
+    print('elflet-mqtt: accepted subscribe topic: {0}'.format(userdata.subscriptions[mid]))
     
 def on_message(client, userdata, msg):
     data = json.loads(msg.payload)
@@ -134,11 +136,13 @@ class Subscriber(threading.Thread):
     def __init__(self, conf):
         super(Subscriber, self).__init__()
         self.conf = conf
+        self.subscriptions = {}
 
     def run(self):
         time.sleep(1)
         
         client = mqtt.Client(protocol=mqtt.MQTTv311)
+        client.user_data_set(self)
         client.on_connect = on_connect
         client.on_subscribe = on_subscribe
         client.on_message = on_message
