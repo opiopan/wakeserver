@@ -69,11 +69,16 @@ mqttrestart: $(MQTT_CONF)
 	systemctl enable mosquitto || exit 1
 	systemctl restart mosquitto || exit 1
 
+.PHONY: $(MQTT_CONF)
 $(MQTT_CONF):
 	apt-get install -y mosquitto
 	apt-get install -y mosquitto-clients
 	mv $(MQTT_CONF) $(MQTT_CONF).bak
-	$(COMMENT) '^log_dest' < $(MQTT_CONF).bak >$(MQTT_CONF) 
+	$(COMMENT) '^log_dest' < $(MQTT_CONF).bak | \
+	    grep -v '^bind_address' | \
+	    grep -v '^allow_anonymous' >$(MQTT_CONF)
+	echo 'bind_address 0.0.0.0' >>$(MQTT_CONF)
+	echo 'allow_anonymous true' >>$(MQTT_CONF)
 
 avahirestart: $(AVAHI_BROWSE) $(M4)
 	m4 -D SERVICENAME=$(SERVICE_NAME) \
