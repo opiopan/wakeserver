@@ -69,7 +69,6 @@ mqttrestart: $(MQTT_CONF)
 	systemctl enable mosquitto || exit 1
 	systemctl restart mosquitto || exit 1
 
-.PHONY: $(MQTT_CONF)
 $(MQTT_CONF):
 	apt-get install -y mosquitto
 	apt-get install -y mosquitto-clients
