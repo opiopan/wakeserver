@@ -10,6 +10,7 @@ import socket
 import struct
 import queue as Queue
 import binascii
+import traceback
 from wakeserver import monitoring, plugin
 
 PLUGIN_NAME = 'onkyo-amp'
@@ -33,8 +34,8 @@ class ATTR:
 class Command:
     HEADER_LENGTH = 16
     HEADER = struct.Struct('!4sii4s')
-    PREFIX = 'ISCP'
-    SUFFIX = '\x01\x00\x00\x00'
+    PREFIX = 'ISCP'.encode('utf-8')
+    SUFFIX = '\x01\x00\x00\x00'.encode('utf-8')
 
     OK = 0
     TOO_SHORT = -1
@@ -92,7 +93,7 @@ class Command:
             else:
                 return None
 
-        data = self.kind + value + '\n'
+        data = (self.kind + value + '\n').encode('utf-8')
 
         return self.HEADER.pack(self.PREFIX, self.HEADER_LENGTH,
                                 len(data), self.SUFFIX) + data
@@ -175,6 +176,7 @@ class Sender(threading.Thread):
                 #time.sleep(0.01)
             except:
                 print('ISCP: send error')
+                print(traceback.format_exc())
                 self.controller.resetConnection()
                 return
 
