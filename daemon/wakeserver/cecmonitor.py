@@ -98,7 +98,8 @@ class CECController(threading.Thread):
     def observe(self):
         proc = subprocess.Popen(['cec-client'],
                                 stdout = subprocess.PIPE,
-                                stdin = subprocess.PIPE)
+                                stdin = subprocess.PIPE,
+                                text = True)
         self.sender = CECCmdSender(proc)
         self.sender.start()
         for target in self.targets:
@@ -106,7 +107,7 @@ class CECController(threading.Thread):
             self.sender.send(cmd)
         
         while True:
-            line = proc.stdout.readline().decode("utf-8")
+            line = proc.stdout.readline()
             if not line :
                 self.sender.quit()
                 self.sender.join()
