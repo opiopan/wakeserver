@@ -150,6 +150,7 @@ class Monitor(threading.Thread) :
         
                 
     def run(self):
+        time.sleep(10)
         for i in self.realtimeServers:
             server = self.servers[i]
             pname = server['scheme']['type']
@@ -157,6 +158,7 @@ class Monitor(threading.Thread) :
             status = 'on' if plugin.diagnose(server) else 'off'
             server['status'] = status
             self.statuses[i]['status'] = status
+            print('MONITOR: update server[{0}] to {1}'.format(i, status))
         
         while True:
             time.sleep(INTERVAL_WRITE)
