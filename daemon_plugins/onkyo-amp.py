@@ -27,15 +27,15 @@ DEBUG = 'DEBUG' in os.environ
 # ISCP packet encoder/decoder
 #---------------------------------------------------------------------
 class ATTR:
-    power = '!1PWR'
-    volume = '!1MVL'
-    selector = '!1SLI'
+    power = b'!1PWR'
+    volume = b'!1MVL'
+    selector = b'!1SLI'
 
 class Command:
     HEADER_LENGTH = 16
     HEADER = struct.Struct('!4sii4s')
-    PREFIX = 'ISCP'.encode('utf-8')
-    SUFFIX = '\x01\x00\x00\x00'.encode('utf-8')
+    PREFIX = b'ISCP'
+    SUFFIX = b'\x01\x00\x00\x00'
 
     OK = 0
     TOO_SHORT = -1
@@ -69,7 +69,7 @@ class Command:
     def applyAttribute(self, kind, value):
         self.kind = kind
         if kind == ATTR.power:
-            self.value = (value == '01')
+            self.value = (value == b'01')
         elif kind == ATTR.volume:
             self.value = int(value, 16)
         elif kind == ATTR.selector:
@@ -93,7 +93,7 @@ class Command:
             else:
                 return None
 
-        data = (self.kind + value + '\n').encode('utf-8')
+        data = (self.kind.decode('utf-8') + value + '\n').encode('utf-8')
 
         return self.HEADER.pack(self.PREFIX, self.HEADER_LENGTH,
                                 len(data), self.SUFFIX) + data
