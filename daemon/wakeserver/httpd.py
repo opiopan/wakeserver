@@ -41,14 +41,14 @@ class Request:
         self.path = urllib.parse.unquote(parsed.path)
         self.query = parsed.query
         self.params = urlparse.parse_qs(parsed.query)
-        self.body = ''
+        self.body = b''
         self.json = None
         self.isParsed = False
 
     def parseBody(self):
         if self.isParsed:
             return
-        self.body = ''
+        self.body = b''
         self.json = None
         ctype, pdict = '', ''
         if 'Content-Type' in self.headers:
@@ -60,9 +60,9 @@ class Request:
                 length = int(self.headers['Content-Length'])
                 self.body = self.rfile.read(length)
                 if ctype == 'application/x-www-form-urlencoded':
-                    self.params = urlparse.parse_qs(self.body)
+                    self.params = urlparse.parse_qs(self.body.decode('utf-8'))
                 elif ctype == 'application/json':
-                    self.json = json.loads(self.body)
+                    self.json = json.loads(self.body.decode('utf-8'))
 
 class Response:
     class Phase:
