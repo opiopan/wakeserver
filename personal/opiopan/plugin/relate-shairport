@@ -7,11 +7,11 @@ URL='http://localhost:8080/servers'
 TVNAME=TV%20@living%20%231
 AMPNAME=AV%20amplifier
 STOPCMD='{"isOn":false}'
-AMPSTARTCMD='{"isOn":true,"attributes":{"selector":0,"volume":26}}'
+AMPSTARTCMD='{"isOn":true,"attributes":{"selector":0,"volume":29}}'
 
 ison(){
     SERVER="$1"
-    curl -s "$URL/$SERVER" | python -m json.tool |
+    curl -s "$URL/$SERVER" | python -m json.tool | sed -e 's/,$//' |
 	awk '
             BEGIN {rc = 1}
 	    $1 == "\"isOn\":"{
