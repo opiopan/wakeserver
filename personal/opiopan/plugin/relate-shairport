@@ -7,7 +7,9 @@ URL='http://localhost:8080/servers'
 TVNAME=TV%20@living%20%231
 AMPNAME=AV%20amplifier
 STOPCMD='{"isOn":false}'
-AMPSTARTCMD='{"isOn":true,"attributes":{"selector":0,"volume":29}}'
+AMPSTARTCMD='{"isOn":true,"attributes":{"selector":0}}'
+AMPVOLUMECMD1='{"attributes":{"volume":30}}'
+AMPVOLUMECMD2='{"attributes":{"volume":26}}'
 
 ison(){
     SERVER="$1"
@@ -41,12 +43,16 @@ case "$CMD" in
 	if ison "$TVNAME";then
 	    post "$TVNAME" "$STOPCMD"
 	    while ison "$AMPNAME" ;do
-		echo 'tv checking'
-		sleep 0.5
+			echo 'tv checking'
+			sleep 0.5
 	    done
 	    sleep 2
 	    post "$AMPNAME" "$AMPSTARTCMD"
+		sleep 4
+	    post "$AMPNAME" "$AMPVOLUMECMD1"
 	else
+	    post "$AMPNAME" "$AMPVOLUMECMD2"
+		sleep 2
 	    post "$AMPNAME" "$AMPSTARTCMD"
 	fi
 	;;

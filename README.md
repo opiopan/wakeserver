@@ -32,7 +32,7 @@ Wakeserver contains a plugin for [Homebridge](https://github.com/nfarina/homebri
 <img alt="Native App for Apple Watch" src="https://raw.githubusercontent.com/wiki/opiopan/wakeserver/images/ws-mobile.gif" width=200>
 </p>
 
-## Requirement
+<!-- ## Requirement
  * **Python 2.7.\*** must be default python<br>
    You can check default python version with:
    ```shell
@@ -42,7 +42,7 @@ Wakeserver contains a plugin for [Homebridge](https://github.com/nfarina/homebri
    You can check default Node version with:
    ```shell
    $ node --version
-   ```
+   ``` -->
 
 ## Prepare to Install (Personalize)
 Before intall Wakeserver, you need to prepare some files correspond to your home network. Several examples are [here](https://github.com/opiopan/wakeserver/tree/master/personal).

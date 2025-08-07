@@ -240,7 +240,7 @@ class Controller(threading.Thread):
     def setStatus(self, power = None, volume = None, selector = None):
         if not self.sender:
             return False
-        
+
         if power != None:
             self.sender.send(Command(ATTR.power, power))
         if volume != None:
