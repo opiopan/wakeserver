@@ -38,7 +38,7 @@ post(){
 CMD="$1"
 
 case "$CMD" in
-    start)
+	start)
 	rm -f $STOP_TIME
 	if ison "$TVNAME";then
 	    post "$TVNAME" "$STOPCMD"
@@ -51,12 +51,13 @@ case "$CMD" in
 		sleep 4
 	    post "$AMPNAME" "$AMPVOLUMECMD1"
 	else
-	    post "$AMPNAME" "$AMPVOLUMECMD2"
-		sleep 2
 	    post "$AMPNAME" "$AMPSTARTCMD"
+		sleep 4
+	    post "$AMPNAME" "$AMPVOLUMECMD1"
 	fi
 	;;
-    stop)
+
+	stop)
 	date +%s > $STOP_TIME
 	(
 	    sleep $SLEEP_DEFFERED
@@ -66,6 +67,8 @@ case "$CMD" in
 	    if [ "$past" != ""  ] && \
 	       [ `expr $now - $past` -gt $threshold ];then
 		if ! ison "$TVNAME";then
+		    post "$AMPNAME" "$AMPVOLUMECMD2"
+			sleep 4
 		    post "$AMPNAME" "$STOPCMD"
 		fi
 	    fi 
