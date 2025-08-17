@@ -46,7 +46,7 @@ Wakeserver contains a plugin for [Homebridge](https://github.com/nfarina/homebri
 
 ## Prepare to Install (Personalize)
 Before intall Wakeserver, you need to prepare some files correspond to your home network. Several examples are [here](https://github.com/opiopan/wakeserver/tree/master/personal).
-Following files should be placed in your configuration directory.
+Following files should be placed in your configuration directory. 
 
 |File|Type|Description|
 |:-|:-|:-|
@@ -75,6 +75,16 @@ Finally, install and run wakeserver service.
 
 ```shell
 $ sudo make install
+```
+
+## Debugging
+The wakeserver running under systemd does not produce any logs at all.　
+During plugin debugging, you can enable detailed log output by starting wakeserverd with the `DEBUG` environment variable set to `true`.
+In this mode, verbose logs will be printed to standard output.
+
+```shell
+$ sudo systemctl stop wakeserver
+$ DEBUG=true /var/www/wakeserver/daemon/wakeserverd
 ```
 
 ## Related Projects
