@@ -67,6 +67,11 @@ def setServerStatus(server, scheme, power, reboot, plugin):
             cmd = "nohup sh -c 'sudo /sbin/shutdown -h now'&"
         elif off == 'sleep' and type == 'osx':
             cmd = 'pmset sleepnow'
+        elif off == 'hibernate' and type == 'windows':
+            cmd = \
+                'schtasks /create /tn "hiber_now" /tr "shutdown /h" ' + \
+                '/sc once /st 00:00 /f /it && schtasks /run /tn "hiber_now" ' + \
+                '&& schtasks /delete /tn "hiber_now" /f & exit'
         elif off != 'custom':
             plugin = None
         remote = server['ipaddr']
